@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作品詳細 | ACC CASE LIBRARY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      color: #1a1a1a;
+      background: #fff;
+      min-height: 100vh;
+    }
+
+    /* ===== SEARCH BAR (top) ===== */
+    .search-area {
+      padding: 20px 40px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      border: 1px solid #d1d5db;
+      border-radius: 24px;
+      padding: 9px 16px;
+      width: 560px;
+      gap: 8px;
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 13px;
+      color: #6b7280;
+      font-family: 'Noto Sans JP', sans-serif;
+      background: transparent;
+    }
+
+    .search-bar input::placeholder { color: #9ca3af; }
+
+    /* ===== PREV / LIST / NEXT NAV ===== */
+    .article-nav {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 20px 40px 0;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .nav-prev,
+    .nav-next {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #1a1a1a;
+      font-size: 13px;
+      padding: 6px 0;
+    }
+
+    .nav-next { justify-content: flex-end; }
+
+    .nav-prev:hover,
+    .nav-next:hover { opacity: 0.6; }
+
+    .nav-prev-inner,
+    .nav-next-inner {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-label {
+      font-size: 11px;
+      color: #9ca3af;
+      line-height: 1;
+      margin-bottom: 3px;
+    }
+
+    .nav-title {
+      font-size: 13px;
+      color: #1a1a1a;
+    }
+
+    .nav-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: #1a1a1a;
+    }
+
+    .nav-center:hover { opacity: 0.6; }
+
+    .nav-center-label {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    /* grid icon */
+    .grid-icon {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      width: 22px;
+      height: 22px;
+    }
+
+    .grid-icon span {
+      background: #1a1a1a;
+      border-radius: 1px;
+    }
+
+    /* ===== LOADING / ERROR ===== */
+    .state-box {
+      text-align: center;
+      padding: 80px 0;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #1a1a1a;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .state-box p {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+
+    .retry-btn {
+      padding: 10px 28px;
+      border: 1px solid #d1d5db;
+      background: white;
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      border-radius: 2px;
+      color: #1a1a1a;
+      transition: background 0.15s;
+    }
+
+    .retry-btn:hover { background: #f9fafb; }
+
+    /* ===== CAROUSEL ===== */
+    .carousel-wrap {
+      max-width: 960px;
+      margin: 20px auto 0;
+      padding: 0 40px;
+      position: relative;
+    }
+
+    .carousel-track-outer {
+      overflow: hidden;
+      position: relative;
+      background: #f1f2f4;
+      aspect-ratio: 16 / 9;
+    }
+
+    .carousel-track {
+      display: flex;
+      transition: transform 0.35s ease;
+      height: 100%;
+    }
+
+    .carousel-slide {
+      flex-shrink: 0;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* X placeholder */
+    .carousel-slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom right,
+          transparent calc(50% - 0.5px),
+          #d1d5db calc(50% - 0.5px),
+          #d1d5db calc(50% + 0.5px),
+          transparent calc(50% + 0.5px)),
+        linear-gradient(to top right,
+          transparent calc(50% - 0.5px),
+          #d1d5db calc(50% - 0.5px),
+          #d1d5db calc(50% + 0.5px),
+          transparent calc(50% + 0.5px));
+    }
+
+
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.85);
+      border: none;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      border-radius: 50%;
+      transition: background 0.15s;
+    }
+
+    .carousel-btn:hover { background: #fff; }
+    .carousel-btn.prev { left: 48px; }
+    .carousel-btn.next { right: 48px; }
+
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .dot {
+      width: 28px;
+      height: 3px;
+      background: #d1d5db;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .dot.active { background: #1a1a1a; }
+
+    /* ===== WORK INFO ===== */
+    .work-info {
+      max-width: 960px;
+      margin: 28px auto 0;
+      padding: 0 40px;
+    }
+
+    .work-tags {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tag-type {
+      font-size: 12px;
+      color: #6b7280;
+      border: 1px solid #9ca3af;
+      padding: 2px 8px;
+      border-radius: 2px;
+    }
+
+    .tag-medal {
+      font-size: 12px;
+      padding: 2px 10px;
+      border-radius: 2px;
+      border: 1px solid;
+    }
+
+    .tag-medal.grand-prix { color: #ea6c00; border-color: #ea6c00; }
+    .tag-medal.gold       { color: #b8860b; border-color: #b8860b; }
+    .tag-medal.silver     { color: #6b7280; border-color: #6b7280; }
+    .tag-medal.bronze     { color: #c0392b; border-color: #c0392b; }
+    .tag-medal.finalist   { color: #6b7280; border-color: #6b7280; }
+
+    .tag-year {
+      font-size: 12px;
+      color: #6b7280;
+      padding: 2px 8px;
+      border-radius: 2px;
+    }
+
+    .work-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 14px;
+      line-height: 1.4;
+      letter-spacing: 0.01em;
+    }
+
+    .work-advertiser {
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 8px;
+      color: #1a1a1a;
+    }
+
+    /* ===== TABS ===== */
+    .tabs {
+      max-width: 960px;
+      margin: 28px auto 0;
+      padding: 0 40px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      gap: 0;
+    }
+
+    .tab-btn {
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      padding: 12px 28px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #6b7280;
+      position: relative;
+      transition: color 0.15s;
+    }
+
+    .tab-btn.active {
+      color: #1a1a1a;
+      font-weight: 700;
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #1a1a1a;
+    }
+
+    .tab-btn:hover:not(.active) { color: #374151; }
+
+    /* ===== TAB CONTENT ===== */
+    .tab-content {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 36px 40px 80px;
+      display: flex;
+      gap: 48px;
+      align-items: flex-start;
+    }
+
+    .tab-panel { display: none; width: 100%; }
+    .tab-panel.active { display: flex; gap: 48px; }
+
+    /* LEFT: main text */
+    .content-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .content-main h2 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .content-main p {
+      font-size: 14px;
+      line-height: 2;
+      color: #374151;
+      margin-bottom: 16px;
+    }
+
+    .content-main p:last-child { margin-bottom: 0; }
+
+    /* RIGHT: sidebar */
+    .content-side {
+      width: 260px;
+      flex-shrink: 0;
+    }
+
+    .side-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .side-note {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .side-links {
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .side-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 0;
+      border-bottom: 1px solid #e5e7eb;
+      text-decoration: none;
+      color: #1a1a1a;
+      font-size: 14px;
+      transition: opacity 0.15s;
+    }
+
+    .side-link:hover { opacity: 0.6; }
+
+    .side-link-icon {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #e5e7eb;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .side-link-label { flex: 1; }
+
+    .side-link-ext {
+      color: #9ca3af;
+      flex-shrink: 0;
+    }
+
+    .side-footnote {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+
+    /* なぜ選ばれたか / 作品詳細 tabs (text-only layout) */
+    .content-full {
+      width: 100%;
+    }
+
+    .content-full h2 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .content-full p {
+      font-size: 14px;
+      line-height: 2;
+      color: #374151;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SEARCH -->
+  <div class="search-area">
+    <div class="search-bar">
+      <input type="text" placeholder="キーワードから探す（企業名、作品名、コピー、制作会社など）">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- PREV / LIST / NEXT -->
+  <nav class="article-nav">
+    <a class="nav-prev" id="nav-prev" style="visibility:hidden;" href="#">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      <div class="nav-prev-inner">
+        <span class="nav-label">前の記事</span>
+        <span class="nav-title" id="prev-title"></span>
+      </div>
+    </a>
+
+    <a class="nav-center" href="index.html">
+      <div class="grid-icon">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <span class="nav-center-label">一覧を見る</span>
+    </a>
+
+    <a class="nav-next" id="nav-next" style="visibility:hidden;" href="#">
+      <div class="nav-next-inner" style="text-align:right;">
+        <span class="nav-label">次の記事</span>
+        <span class="nav-title" id="next-title"></span>
+      </div>
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+  </nav>
+
+  <!-- LOADING STATE -->
+  <div class="state-box" id="loading-state">
+    <div class="spinner"></div>
+    <p>データを読み込んでいます...</p>
+  </div>
+
+  <!-- ERROR STATE -->
+  <div class="state-box" id="error-state" style="display:none;">
+    <p id="error-msg">データの読み込みに失敗しました</p>
+    <button class="retry-btn" onclick="loadPage()">再試行</button>
+  </div>
+
+  <!-- PAGE CONTENT (hidden until loaded) -->
+  <div id="page-content" style="display:none;">
+
+    <!-- CAROUSEL -->
+    <div class="carousel-wrap">
+      <div class="carousel-track-outer">
+        <div class="carousel-track" id="carouselTrack">
+          <div class="carousel-slide"></div>
+          <div class="carousel-slide"></div>
+          <div class="carousel-slide"></div>
+          <div class="carousel-slide"></div>
+        </div>
+      </div>
+      <button class="carousel-btn prev" onclick="slide(-1)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button class="carousel-btn next" onclick="slide(1)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+      <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+
+    <!-- WORK INFO -->
+    <div class="work-info">
+      <div class="work-tags">
+        <span class="tag-type" id="work-type"></span>
+        <span class="tag-medal" id="work-medal"></span>
+        <span class="tag-year" id="work-year"></span>
+      </div>
+      <h1 class="work-title" id="work-title"></h1>
+      <div class="work-advertiser" id="work-advertiser"></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(this, 'tab-overview')">概要</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-why')">なぜ選ばれたか</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-detail')">作品詳細</button>
+    </div>
+
+    <!-- TAB CONTENT -->
+    <div style="max-width:960px; margin:0 auto; padding:36px 40px 80px;">
+
+      <!-- 概要 -->
+      <div class="tab-panel active" id="tab-overview">
+        <div class="content-main">
+          <h2>概要</h2>
+          <p id="overview-text"></p>
+        </div>
+        <div class="content-side">
+          <div class="side-title">関連情報</div>
+          <div class="side-note">動画やSNSなどの関連情報がある場合に表示されます。</div>
+          <div class="side-links">
+            <a class="side-link" href="#" target="_blank" rel="noopener">
+              <div class="side-link-icon">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+                </svg>
+              </div>
+              <span class="side-link-label">動画を見る</span>
+              <svg class="side-link-ext" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
+            <a class="side-link" href="#" target="_blank" rel="noopener">
+              <div class="side-link-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </div>
+              <span class="side-link-label">Twitterで見る</span>
+              <svg class="side-link-ext" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
+            <a class="side-link" href="#" target="_blank" rel="noopener">
+              <div class="side-link-icon">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </div>
+              <span class="side-link-label">公式サイトを見る</span>
+              <svg class="side-link-ext" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+            </a>
+          </div>
+          <div class="side-footnote">※ 関連情報がない場合は、このエリアは表示されません。</div>
+        </div>
+      </div>
+
+      <!-- なぜ選ばれたか -->
+      <div class="tab-panel" id="tab-why">
+        <div class="content-full">
+          <h2>なぜ選ばれたか</h2>
+          <p>審査員によるコメントや選考理由が入ります。どのような点が評価されたのかをご紹介します。</p>
+          <p>この作品が選ばれた理由が入ります。審査員の視点や業界における意義などが記載されます。</p>
+        </div>
+      </div>
+
+      <!-- 作品詳細 -->
+      <div class="tab-panel" id="tab-detail">
+        <div class="content-full">
+          <h2>作品詳細</h2>
+          <p>作品の詳細情報が入ります。制作背景、クリエイティブコンセプト、実施施策の詳細などが記載されます。</p>
+          <p>制作会社、クリエイティブチーム、使用メディアなどの詳細情報が入ります。</p>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /#page-content -->
+
+  <script>
+    // GAS Web App URL — デプロイ後のURLをここに貼り付けてください
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw7bxyoEvsdpNhpR_KdEqI6JovXI6v6r99rTBRnSdMNBb9DkVYRNmxhH3knlMJVtdKq/exec';
+    const CACHE_KEY = 'acc_cards_cache';
+    const CACHE_TTL = 5 * 60 * 1000;
+
+    function getCache() {
+      try {
+        const item = localStorage.getItem(CACHE_KEY);
+        if (!item) return null;
+        const { cards, timestamp } = JSON.parse(item);
+        if (Date.now() - timestamp > CACHE_TTL) return null;
+        return cards;
+      } catch { return null; }
+    }
+
+    function setCache(cards) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ cards, timestamp: Date.now() }));
+      } catch {}
+    }
+
+    // ===== CAROUSEL =====
+    const totalSlides = 4;
+    let currentSlide = 0;
+
+    const track  = document.getElementById('carouselTrack');
+    const dotsEl = document.getElementById('carouselDots');
+
+    for (let i = 0; i < totalSlides; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      dot.onclick = () => goTo(i);
+      dotsEl.appendChild(dot);
+    }
+
+    function goTo(index) {
+      currentSlide = index;
+      track.style.transform = `translateX(-${currentSlide * 100}%)`;
+      document.querySelectorAll('.dot').forEach((d, i) => {
+        d.classList.toggle('active', i === currentSlide);
+      });
+    }
+
+    function slide(dir) {
+      goTo((currentSlide + dir + totalSlides) % totalSlides);
+    }
+
+    // ===== TABS =====
+    function switchTab(btn, panelId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(panelId).classList.add('active');
+    }
+
+    // ===== FETCH FROM GAS =====
+    async function loadPage() {
+      // キャッシュがあれば即座に表示
+      const cached = getCache();
+      if (cached) {
+        initPage(cached);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('page-content').style.display  = '';
+        return;
+      }
+      // なければGASから取得
+      document.getElementById('loading-state').style.display = '';
+      document.getElementById('error-state').style.display   = 'none';
+      document.getElementById('page-content').style.display  = 'none';
+
+      try {
+        const res = await fetch(GAS_API_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        setCache(data.cards);
+        initPage(data.cards);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('page-content').style.display  = '';
+      } catch (err) {
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('error-state').style.display   = '';
+        document.getElementById('error-msg').textContent = 'データの読み込みに失敗しました: ' + err.message;
+      }
+    }
+
+    function initPage(cards) {
+      const params    = new URLSearchParams(window.location.search);
+      const currentId = Math.max(0, Math.min(parseInt(params.get('id') || '0'), cards.length - 1));
+      const card      = cards[currentId];
+
+      // Work info
+      document.getElementById('work-type').textContent    = card.type;
+      const medalEl = document.getElementById('work-medal');
+      medalEl.textContent = card.medalLabel;
+      medalEl.className   = `tag-medal ${card.medal}`;
+      document.getElementById('work-title').textContent      = card.title;
+      document.getElementById('work-advertiser').textContent = card.advertiser;
+      document.getElementById('work-year').textContent       = card.year + '年';
+      document.getElementById('overview-text').textContent   = card.overview || '';
+      document.title = `${card.title} | ACC CASE LIBRARY`;
+
+      // Prev nav
+      const prevEl = document.getElementById('nav-prev');
+      if (currentId > 0) {
+        prevEl.href = `detail.html?id=${currentId - 1}`;
+        document.getElementById('prev-title').textContent = cards[currentId - 1].title;
+        prevEl.style.visibility = '';
+      } else {
+        prevEl.style.visibility = 'hidden';
+      }
+
+      // Next nav
+      const nextEl = document.getElementById('nav-next');
+      if (currentId < cards.length - 1) {
+        nextEl.href = `detail.html?id=${currentId + 1}`;
+        document.getElementById('next-title').textContent = cards[currentId + 1].title;
+        nextEl.style.visibility = '';
+      } else {
+        nextEl.style.visibility = 'hidden';
+      }
+    }
+
+    loadPage();
+  </script>
+</body>
+</html>
