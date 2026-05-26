@@ -77,18 +77,21 @@
 
     /* ===== FILTER BAR ===== */
     .filter-bar {
-      padding: 14px 40px;
+      padding: 16px 60px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       border-bottom: 1px solid #e5e7eb;
       position: relative;
+      background: #fafafa;
     }
 
     .filter-count {
       font-size: 13px;
+      font-weight: 500;
       color: #1a1a1a;
-      margin-right: 12px;
+      margin-right: 16px;
+      letter-spacing: 0.02em;
     }
 
     .filter-wrap {
@@ -99,20 +102,30 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 16px;
+      padding: 9px 20px;
       border: 1px solid #d1d5db;
-      border-radius: 3px;
+      border-radius: 100px;
       background: white;
       font-size: 13px;
       font-family: 'Noto Sans JP', sans-serif;
       cursor: pointer;
       color: #1a1a1a;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
       white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
 
-    .filter-btn:hover { border-color: #9ca3af; }
-    .filter-btn.open { border-color: #1a1a1a; }
+    .filter-btn:hover {
+      border-color: #9ca3af;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .filter-btn.open {
+      border-color: #1a1a1a;
+      background: #1a1a1a;
+      color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .filter-btn.open .chevron { stroke: white; }
 
     .chevron {
       transition: transform 0.2s;
@@ -218,17 +231,47 @@
       flex-shrink: 0;
     }
 
+    /* ===== HERO ===== */
+    .hero {
+      background: #111;
+      color: white;
+      padding: 64px 40px;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: 44px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 18px;
+      line-height: 1.2;
+    }
+
+    .hero-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,0.45);
+      line-height: 2;
+    }
+
     /* ===== CARD GRID ===== */
     .main-content {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 36px 40px;
+      padding: 52px 60px;
     }
 
     .card-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 40px 32px;
+      gap: 60px 56px;
     }
 
     .card {
@@ -236,9 +279,19 @@
       text-decoration: none;
       color: inherit;
       display: block;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
     }
 
-    .card:hover .card-thumb { opacity: 0.82; }
+    .card.card-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card.card-visible:hover {
+      transform: translateY(-12px);
+    }
 
     .card-thumb {
       width: 100%;
@@ -246,7 +299,12 @@
       background: #f1f2f4;
       position: relative;
       overflow: hidden;
-      transition: opacity 0.2s;
+      border-radius: 6px;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .card.card-visible:hover .card-thumb {
+      box-shadow: 0 20px 48px rgba(0,0,0,0.18);
     }
 
     .card-thumb::before {
@@ -272,6 +330,8 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.25s ease;
     }
 
     /* 画像ありのカードはX印を非表示 */
@@ -417,6 +477,13 @@
       </svg>
     </div>
   </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="hero-eyebrow">広告ACC 作品事例集 BC・PR</p>
+    <h2 class="hero-title">ACC CASE LIBRARY</h2>
+    <p class="hero-desc">全日本シーエム放送連盟が主催する<br>「ACC TOKYO CREATIVITY AWARDS」BC・PR部門の受賞作品を収録しています。</p>
+  </div>
 
   <!-- FILTER BAR -->
   <div class="filter-bar" id="filterBar">
@@ -593,6 +660,19 @@
     const grid    = document.getElementById('cardGrid');
     const cardEls = [];
 
+    // ===== CARD ENTRANCE ANIMATION =====
+    const cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const delay = (Number(el.dataset.col) || 0) * 0.08;
+          el.style.transitionDelay = `${delay}s`;
+          el.classList.add('card-visible');
+          cardObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.08 });
+
     // ===== LOADING / ERROR =====
     function showLoading() {
       document.getElementById('loading-state').style.display = '';
@@ -627,6 +707,7 @@
         a.dataset.year     = String(c.year);
         a.dataset.medal    = c.medal;
         a.dataset.division = c.division;
+        a.dataset.col      = i % 3;
         a.style.display    = 'none';
 
         const thumb = document.createElement('div');
@@ -635,6 +716,7 @@
           thumb.classList.add('has-image');
           const img = document.createElement('img');
           img.alt = '';
+          img.onload  = () => { img.style.opacity = '1'; };
           img.onerror = () => { thumb.classList.remove('has-image'); img.style.display = 'none'; };
           img.src = c.thumbnailUrl;
           thumb.appendChild(img);
@@ -646,7 +728,7 @@
 
         const typeSpan = document.createElement('span');
         typeSpan.className = 'tag-type';
-        typeSpan.textContent = c.type;
+        typeSpan.textContent = c.division;
 
         const medalSpan = document.createElement('span');
         medalSpan.className = `tag-medal ${c.medal}`;
@@ -673,6 +755,7 @@
 
         grid.appendChild(a);
         cardEls.push(a);
+        cardObserver.observe(a);
       });
 
       applyFilters();
