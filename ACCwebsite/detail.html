@@ -740,7 +740,7 @@
       // キャッシュがあれば即座に表示
       const cached = getCache();
       if (cached) {
-        initPage(cached);
+        await initPage(cached);
         document.getElementById('loading-state').style.display = 'none';
         document.getElementById('page-content').style.display  = '';
         return;
@@ -756,7 +756,7 @@
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         setCache(data.cards);
-        initPage(data.cards);
+        await initPage(data.cards);
         document.getElementById('loading-state').style.display = 'none';
         document.getElementById('page-content').style.display  = '';
       } catch (err) {
@@ -766,29 +766,34 @@
       }
     }
 
-    function initPage(cards) {
-      const params    = new URLSearchParams(window.location.search);
-      const currentId = Math.max(0, Math.min(parseInt(params.get('id') || '0'), cards.length - 1));
-      const card      = cards[currentId];
+    // 画像URLが有効かどうかをプリロードで確認
+    function preloadImage(src) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload  = () => resolve(src);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
+    }
 
-      // ===== CAROUSEL: スライドを動的に構築 =====
+    async function buildCarousel(card) {
       track.innerHTML = '';
       dotsEl.innerHTML = '';
 
-      const mediaItems = [];
-      // 1枚目サムネイル
-      if (card.thumbnailUrl && card.thumbnailUrl.trim()) {
-        mediaItems.push({ type: 'image', src: card.thumbnailUrl.trim() });
-      }
-      // 追加画像（imageUrl2 / imageUrl3 / imageUrl4）
+      const candidates = [];
+      if (card.thumbnailUrl && card.thumbnailUrl.trim()) candidates.push(card.thumbnailUrl.trim());
       ['imageUrl2', 'imageUrl3', 'imageUrl4'].forEach(key => {
-        if (card[key] && card[key].trim()) {
-          mediaItems.push({ type: 'image', src: card[key].trim() });
-        }
+        if (card[key] && card[key].trim()) candidates.push(card[key].trim());
       });
-      if (mediaItems.length === 0) mediaItems.push({ type: 'empty' });
 
-      mediaItems.forEach((item, idx) => {
+      // 全画像を並行プリロード → 存在するものだけを使用
+      const loaded = await Promise.all(candidates.map(preloadImage));
+      const validSrcs = loaded.filter(Boolean);
+      const items = validSrcs.length > 0
+        ? validSrcs.map(src => ({ type: 'image', src }))
+        : [{ type: 'empty' }];
+
+      items.forEach((item, idx) => {
         const sl = document.createElement('div');
         sl.className = 'carousel-slide';
 
@@ -796,8 +801,7 @@
           sl.classList.add('has-image');
           const img = document.createElement('img');
           img.src = item.src; img.alt = card.title;
-          img.onload  = () => { img.style.opacity = '1'; };
-          img.onerror = () => { sl.classList.remove('has-image'); };
+          img.style.opacity = '1'; // 既にロード済み
           sl.appendChild(img);
         }
 
@@ -809,12 +813,21 @@
         dotsEl.appendChild(dot);
       });
 
-      const multi = mediaItems.length > 1;
+      const multi = items.length > 1;
       document.querySelector('.carousel-btn.prev').style.display = multi ? '' : 'none';
       document.querySelector('.carousel-btn.next').style.display = multi ? '' : 'none';
       dotsEl.style.display = multi ? '' : 'none';
       currentSlide = 0;
       track.style.transform = 'translateX(0)';
+    }
+
+    async function initPage(cards) {
+      const params    = new URLSearchParams(window.location.search);
+      const currentId = Math.max(0, Math.min(parseInt(params.get('id') || '0'), cards.length - 1));
+      const card      = cards[currentId];
+
+      // カルーセルを非同期で構築（壊れた画像を自動除外）
+      await buildCarousel(card);
 
       // Work info
       document.getElementById('work-type').textContent    = card.division;
@@ -862,7 +875,7 @@
       }
 
       if (card.staff && card.staff.trim()) {
-        card.staff.split(',').forEach(pair => {
+        card.staff.split(/[；;]/).forEach(pair => {
           const colonIdx = pair.indexOf(':');
           if (colonIdx === -1) return;
           const role = pair.slice(0, colonIdx).trim();
