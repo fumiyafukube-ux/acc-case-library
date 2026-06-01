@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作品詳細 | ACC CASE LIBRARY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      color: #1a1a1a;
+      background: #fff;
+      min-height: 100vh;
+    }
+
+    /* ===== TOP BAR ===== */
+    .top-bar {
+      border-bottom: 1px solid #f0f0f0;
+      padding: 0 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+
+    .top-bar-logo {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #1a1a1a;
+      text-decoration: none;
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      border: 1px solid #e5e7eb;
+      border-radius: 24px;
+      padding: 7px 16px;
+      width: 400px;
+      gap: 8px;
+      background: #fafafa;
+      transition: border-color 0.2s;
+    }
+
+    .search-bar:focus-within {
+      border-color: #1a1a1a;
+      background: #fff;
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 13px;
+      color: #374151;
+      font-family: 'Noto Sans JP', sans-serif;
+      background: transparent;
+    }
+
+    .search-bar input::placeholder { color: #9ca3af; }
+
+    /* ===== ARTICLE NAV ===== */
+    .article-nav {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 16px 48px;
+      max-width: 1080px;
+      margin: 0 auto;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .nav-prev, .nav-next {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #1a1a1a;
+      font-size: 13px;
+      padding: 6px 0;
+      transition: opacity 0.2s;
+    }
+
+    .nav-next { justify-content: flex-end; }
+    .nav-prev:hover, .nav-next:hover { opacity: 0.5; }
+
+    .nav-prev-inner, .nav-next-inner { display: flex; flex-direction: column; }
+
+    .nav-label {
+      font-size: 10px;
+      color: #9ca3af;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .nav-title { font-size: 13px; color: #1a1a1a; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .nav-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      color: #6b7280;
+      transition: color 0.2s;
+    }
+
+    .nav-center:hover { color: #1a1a1a; }
+    .nav-center-label { font-size: 11px; letter-spacing: 0.05em; }
+
+    .grid-icon {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .grid-icon span { background: currentColor; border-radius: 1px; }
+
+    /* ===== LOADING / ERROR ===== */
+    .state-box { text-align: center; padding: 100px 0; }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 2px solid #e5e7eb;
+      border-top-color: #1a1a1a;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .state-box p { font-size: 14px; color: #9ca3af; margin-bottom: 20px; }
+
+    .retry-btn {
+      padding: 10px 32px;
+      border: 1px solid #1a1a1a;
+      background: white;
+      font-size: 13px;
+      font-family: 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      border-radius: 100px;
+      color: #1a1a1a;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .retry-btn:hover { background: #1a1a1a; color: #fff; }
+
+    /* ===== CAROUSEL ===== */
+    .carousel-wrap {
+      max-width: 1080px;
+      margin: 32px auto 0;
+      padding: 0 48px;
+      position: relative;
+    }
+
+    .carousel-track-outer {
+      overflow: hidden;
+      position: relative;
+      background: #f3f4f6;
+      aspect-ratio: 16 / 9;
+      border-radius: 12px;
+    }
+
+    .carousel-track {
+      display: flex;
+      transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      height: 100%;
+      user-select: none;
+    }
+
+    .carousel-slide {
+      flex-shrink: 0;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .carousel-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    /* X placeholder */
+    .carousel-slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom right,
+          transparent calc(50% - 0.5px),
+          #d1d5db calc(50% - 0.5px),
+          #d1d5db calc(50% + 0.5px),
+          transparent calc(50% + 0.5px)),
+        linear-gradient(to top right,
+          transparent calc(50% - 0.5px),
+          #d1d5db calc(50% - 0.5px),
+          #d1d5db calc(50% + 0.5px),
+          transparent calc(50% + 0.5px));
+    }
+
+    .carousel-slide.has-image::before { display: none; }
+
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.9);
+      border: none;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      border-radius: 50%;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+
+    .carousel-btn:hover { background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.18); }
+    .carousel-btn.prev { left: 60px; }
+    .carousel-btn.next { right: 60px; }
+
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 16px;
+    }
+
+    .dot {
+      width: 24px;
+      height: 3px;
+      background: #e5e7eb;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.2s, width 0.2s;
+    }
+
+    .dot.active { background: #1a1a1a; width: 32px; }
+
+    /* ===== WORK INFO ===== */
+    .work-info {
+      max-width: 1080px;
+      margin: 36px auto 0;
+      padding: 0 48px;
+    }
+
+    .work-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tag-type {
+      font-size: 11px;
+      font-weight: 500;
+      color: #6b7280;
+      border: 1px solid #d1d5db;
+      padding: 3px 10px;
+      border-radius: 100px;
+      letter-spacing: 0.05em;
+    }
+
+    .tag-medal {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 100px;
+      letter-spacing: 0.05em;
+    }
+
+    .tag-medal.grand-prix { background: #ea6c00; color: #fff; }
+    .tag-medal.gold       { background: #b8860b; color: #fff; }
+    .tag-medal.silver     { background: #8a9bb0; color: #fff; }
+    .tag-medal.bronze     { background: #a0522d; color: #fff; }
+    .tag-medal.finalist   { background: #e5e7eb; color: #6b7280; }
+
+    .tag-year {
+      font-size: 11px;
+      color: #9ca3af;
+      letter-spacing: 0.05em;
+    }
+
+    .work-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-top: 18px;
+      line-height: 1.45;
+      letter-spacing: 0.01em;
+    }
+
+    .work-advertiser {
+      font-size: 14px;
+      color: #6b7280;
+      margin-top: 10px;
+      font-weight: 400;
+    }
+
+    .work-divider {
+      max-width: 1080px;
+      margin: 32px auto 0;
+      padding: 0 48px;
+    }
+
+    .work-divider hr { border: none; border-top: 1px solid #f0f0f0; }
+
+    /* ===== TABS ===== */
+    .tabs {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 48px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      gap: 0;
+    }
+
+    .tab-btn {
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Noto Sans JP', sans-serif;
+      padding: 16px 28px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9ca3af;
+      position: relative;
+      transition: color 0.2s;
+      letter-spacing: 0.03em;
+    }
+
+    .tab-btn.active { color: #1a1a1a; font-weight: 700; }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: #1a1a1a;
+      border-radius: 2px;
+    }
+
+    .tab-btn:hover:not(.active) { color: #374151; }
+
+    /* ===== TAB CONTENT ===== */
+    .tab-panel { display: none; width: 100%; }
+    .tab-panel.active { display: flex; gap: 56px; }
+
+    .tab-content-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 44px 48px 100px;
+    }
+
+    /* LEFT: main text */
+    .content-main { flex: 1; min-width: 0; }
+
+    .content-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #9ca3af;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    .content-main p {
+      font-size: 15px;
+      line-height: 2.1;
+      color: #374151;
+      margin-bottom: 20px;
+    }
+
+    .content-main p:last-child { margin-bottom: 0; }
+
+    /* RIGHT: sidebar */
+    .content-side { width: 240px; flex-shrink: 0; }
+
+    .side-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #9ca3af;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    .side-links { display: flex; flex-direction: column; gap: 0; }
+
+    .side-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f3f4f6;
+      text-decoration: none;
+      color: #1a1a1a;
+      font-size: 13px;
+      transition: opacity 0.2s;
+    }
+
+    .side-link:first-child { border-top: 1px solid #f3f4f6; }
+    .side-link:hover { opacity: 0.5; }
+
+    .side-link-icon {
+      width: 34px;
+      height: 34px;
+      background: #f3f4f6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .side-link-label { flex: 1; font-weight: 500; }
+
+    .side-link-ext { color: #d1d5db; flex-shrink: 0; }
+
+    /* なぜ選ばれたか / 作品詳細 */
+    .content-full { width: 100%; max-width: 720px; }
+
+    .content-full p {
+      font-size: 15px;
+      line-height: 2.1;
+      color: #374151;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+    }
+
+    /* ===== 作品詳細テーブル ===== */
+    .detail-section { margin-bottom: 40px; }
+
+    .detail-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a1a;
+      border-left: 3px solid #1a1a1a;
+      padding-left: 12px;
+      margin-bottom: 0;
+      line-height: 1;
+      padding-top: 2px;
+      padding-bottom: 2px;
+    }
+
+    .detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 16px;
+    }
+
+    .detail-table tr { border-bottom: 1px solid #e5e7eb; }
+
+    .detail-table th {
+      text-align: left;
+      font-size: 13px;
+      font-weight: 400;
+      color: #6b7280;
+      background: #f9fafb;
+      padding: 14px 20px;
+      width: 200px;
+      white-space: nowrap;
+      vertical-align: top;
+    }
+
+    .detail-table td {
+      font-size: 14px;
+      color: #1a1a1a;
+      padding: 14px 20px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <a class="top-bar-logo" href="index.html">ACC CASE LIBRARY</a>
+    <div class="search-bar">
+      <svg width="15" height="15" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" placeholder="キーワードから探す（企業名、作品名など）">
+    </div>
+    <div style="width:120px;"></div>
+  </header>
+
+  <!-- PREV / LIST / NEXT -->
+  <nav class="article-nav">
+    <a class="nav-prev" id="nav-prev" style="visibility:hidden;" href="#">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      <div class="nav-prev-inner">
+        <span class="nav-label">PREV</span>
+        <span class="nav-title" id="prev-title"></span>
+      </div>
+    </a>
+
+    <a class="nav-center" href="index.html">
+      <div class="grid-icon">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <span class="nav-center-label">一覧を見る</span>
+    </a>
+
+    <a class="nav-next" id="nav-next" style="visibility:hidden;" href="#">
+      <div class="nav-next-inner" style="text-align:right;">
+        <span class="nav-label">NEXT</span>
+        <span class="nav-title" id="next-title"></span>
+      </div>
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+  </nav>
+
+  <!-- LOADING STATE -->
+  <div class="state-box" id="loading-state">
+    <div class="spinner"></div>
+    <p>データを読み込んでいます...</p>
+  </div>
+
+  <!-- ERROR STATE -->
+  <div class="state-box" id="error-state" style="display:none;">
+    <p id="error-msg">データの読み込みに失敗しました</p>
+    <button class="retry-btn" onclick="loadPage()">再試行</button>
+  </div>
+
+  <!-- PAGE CONTENT (hidden until loaded) -->
+  <div id="page-content" style="display:none;">
+
+    <!-- CAROUSEL -->
+    <div class="carousel-wrap">
+      <div class="carousel-track-outer">
+        <div class="carousel-track" id="carouselTrack">
+          <!-- slides built dynamically in initPage() -->
+        </div>
+      </div>
+      <button class="carousel-btn prev" onclick="slide(-1)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button class="carousel-btn next" onclick="slide(1)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+      <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+
+    <!-- WORK INFO -->
+    <div class="work-info">
+      <div class="work-meta">
+        <span class="tag-type" id="work-type"></span>
+        <span class="tag-medal" id="work-medal"></span>
+        <span class="tag-year" id="work-year"></span>
+      </div>
+      <h1 class="work-title" id="work-title"></h1>
+      <div class="work-advertiser" id="work-advertiser"></div>
+    </div>
+
+    <div class="work-divider"><hr></div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(this, 'tab-overview')">概要</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-why')">なぜ選ばれたか</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-detail')">作品詳細</button>
+    </div>
+
+    <!-- TAB CONTENT -->
+    <div class="tab-content-wrap">
+
+      <!-- 概要 -->
+      <div class="tab-panel active" id="tab-overview">
+        <div class="content-main">
+          <div class="content-section-label">Overview</div>
+          <p id="overview-text"></p>
+        </div>
+        <!-- 関連情報：データがある場合のみ表示 -->
+        <div class="content-side" id="related-side" style="display:none;">
+          <div class="side-title">Related</div>
+          <div class="side-links" id="related-links"></div>
+        </div>
+      </div>
+
+      <!-- なぜ選ばれたか -->
+      <div class="tab-panel" id="tab-why">
+        <div class="content-full">
+          <div class="content-section-label">Why it won</div>
+          <p id="why-text"></p>
+        </div>
+      </div>
+
+      <!-- 作品詳細 -->
+      <div class="tab-panel" id="tab-detail">
+        <div style="width:100%;">
+
+          <!-- 作品情報 -->
+          <div class="detail-section">
+            <div class="detail-section-title">作品情報</div>
+            <table class="detail-table">
+              <tbody>
+                <tr id="row-workNumber"><th>作品番号</th><td id="cell-workNumber"></td></tr>
+                <tr id="row-productName"><th>商品名</th><td id="cell-productName"></td></tr>
+                <tr><th>作品名</th><td id="cell-title-d"></td></tr>
+                <tr><th>受賞年</th><td id="cell-year-d"></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 作品会社情報 -->
+          <div class="detail-section">
+            <div class="detail-section-title">作品会社情報</div>
+            <table class="detail-table">
+              <tbody>
+                <tr><th>広告主</th><td id="cell-advertiser-d"></td></tr>
+                <tr id="row-agency"><th>広告会社</th><td id="cell-agency"></td></tr>
+                <tr id="row-productionCompany"><th>制作会社</th><td id="cell-productionCompany"></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 制作スタッフ -->
+          <div class="detail-section" id="section-staff" style="display:none;">
+            <div class="detail-section-title">制作スタッフ</div>
+            <table class="detail-table">
+              <tbody id="staff-table-body"></tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /#page-content -->
+
+  <script>
+    // GAS Web App URL — デプロイ後のURLをここに貼り付けてください
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw7bxyoEvsdpNhpR_KdEqI6JovXI6v6r99rTBRnSdMNBb9DkVYRNmxhH3knlMJVtdKq/exec';
+    const CACHE_KEY = 'acc_cards_cache';
+    const CACHE_TTL = 5 * 60 * 1000;
+
+    function getCache() {
+      try {
+        const item = localStorage.getItem(CACHE_KEY);
+        if (!item) return null;
+        const { cards, timestamp } = JSON.parse(item);
+        if (Date.now() - timestamp > CACHE_TTL) return null;
+        return cards;
+      } catch { return null; }
+    }
+
+    function setCache(cards) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ cards, timestamp: Date.now() }));
+      } catch {}
+    }
+
+    // ===== CAROUSEL (dynamic) =====
+    let currentSlide = 0;
+    const track  = document.getElementById('carouselTrack');
+    const dotsEl = document.getElementById('carouselDots');
+
+    function slideCount() {
+      return track.querySelectorAll('.carousel-slide').length || 1;
+    }
+
+    function goTo(index) {
+      const total = slideCount();
+      currentSlide = ((index % total) + total) % total;
+      track.style.transform = `translateX(-${currentSlide * 100}%)`;
+      dotsEl.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+    }
+
+    function slide(dir) { goTo(currentSlide + dir); }
+
+    // ===== SWIPE（タッチのみ） =====
+    let touchStartX = null;
+    let touchCurrentX = null;
+    const SWIPE_THRESHOLD = 50;
+
+    track.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].clientX;
+      touchCurrentX = null;
+    }, { passive: true });
+
+    track.addEventListener('touchmove', e => {
+      if (touchStartX === null) return;
+      touchCurrentX = e.touches[0].clientX;
+      const diff = touchCurrentX - touchStartX;
+      track.style.transform = `translateX(calc(-${currentSlide * 100}% + ${Math.max(-120, Math.min(120, diff))}px))`;
+    }, { passive: true });
+
+    track.addEventListener('touchend', () => {
+      const diff = (touchCurrentX ?? touchStartX) - touchStartX;
+      touchStartX = null; touchCurrentX = null;
+      if (Math.abs(diff) >= SWIPE_THRESHOLD) {
+        slide(diff < 0 ? 1 : -1);
+      } else {
+        track.style.transform = `translateX(-${currentSlide * 100}%)`;
+      }
+    });
+
+    // ===== TABS =====
+    function switchTab(btn, panelId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(panelId).classList.add('active');
+    }
+
+    // ===== FETCH FROM GAS =====
+    async function loadPage() {
+      // キャッシュがあれば即座に表示
+      const cached = getCache();
+      if (cached) {
+        initPage(cached);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('page-content').style.display  = '';
+        return;
+      }
+      // なければGASから取得
+      document.getElementById('loading-state').style.display = '';
+      document.getElementById('error-state').style.display   = 'none';
+      document.getElementById('page-content').style.display  = 'none';
+
+      try {
+        const res = await fetch(GAS_API_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        setCache(data.cards);
+        initPage(data.cards);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('page-content').style.display  = '';
+      } catch (err) {
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('error-state').style.display   = '';
+        document.getElementById('error-msg').textContent = 'データの読み込みに失敗しました: ' + err.message;
+      }
+    }
+
+    function initPage(cards) {
+      const params    = new URLSearchParams(window.location.search);
+      const currentId = Math.max(0, Math.min(parseInt(params.get('id') || '0'), cards.length - 1));
+      const card      = cards[currentId];
+
+      // ===== CAROUSEL: スライドを動的に構築 =====
+      track.innerHTML = '';
+      dotsEl.innerHTML = '';
+
+      const mediaItems = [];
+      // 1枚目サムネイル
+      if (card.thumbnailUrl && card.thumbnailUrl.trim()) {
+        mediaItems.push({ type: 'image', src: card.thumbnailUrl.trim() });
+      }
+      // 追加画像（imageUrl2 / imageUrl3 / imageUrl4）
+      ['imageUrl2', 'imageUrl3', 'imageUrl4'].forEach(key => {
+        if (card[key] && card[key].trim()) {
+          mediaItems.push({ type: 'image', src: card[key].trim() });
+        }
+      });
+      if (mediaItems.length === 0) mediaItems.push({ type: 'empty' });
+
+      mediaItems.forEach((item, idx) => {
+        const sl = document.createElement('div');
+        sl.className = 'carousel-slide';
+
+        if (item.type === 'image') {
+          sl.classList.add('has-image');
+          const img = document.createElement('img');
+          img.src = item.src; img.alt = card.title;
+          img.onload  = () => { img.style.opacity = '1'; };
+          img.onerror = () => { sl.classList.remove('has-image'); };
+          sl.appendChild(img);
+        }
+
+        track.appendChild(sl);
+
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (idx === 0 ? ' active' : '');
+        dot.onclick = () => goTo(idx);
+        dotsEl.appendChild(dot);
+      });
+
+      const multi = mediaItems.length > 1;
+      document.querySelector('.carousel-btn.prev').style.display = multi ? '' : 'none';
+      document.querySelector('.carousel-btn.next').style.display = multi ? '' : 'none';
+      dotsEl.style.display = multi ? '' : 'none';
+      currentSlide = 0;
+      track.style.transform = 'translateX(0)';
+
+      // Work info
+      document.getElementById('work-type').textContent    = card.division;
+      const medalEl = document.getElementById('work-medal');
+      medalEl.textContent = card.medalLabel;
+      medalEl.className   = `tag-medal ${card.medal}`;
+      document.getElementById('work-title').textContent      = card.title;
+      document.getElementById('work-advertiser').textContent = card.advertiser;
+      document.getElementById('work-year').textContent       = card.year + '年';
+      document.getElementById('overview-text').textContent = card.overview || '';
+      document.getElementById('why-text').textContent      = card.whySelected || '（未入力）';
+
+      // ===== 作品詳細 タブ =====
+      // ヘルパー: 値があれば表示、なければ行を非表示
+      function setDetailRow(rowId, cellId, value) {
+        const row = document.getElementById(rowId);
+        if (value && String(value).trim()) {
+          document.getElementById(cellId).textContent = String(value).trim();
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      }
+
+      // 作品情報
+      setDetailRow('row-workNumber', 'cell-workNumber', card.workNumber);
+      setDetailRow('row-productName', 'cell-productName', card.productName);
+      document.getElementById('cell-title-d').textContent    = card.title || '';
+      document.getElementById('cell-year-d').textContent     = card.year ? card.year + '年' : '';
+
+      // 作品会社情報
+      document.getElementById('cell-advertiser-d').textContent = card.advertiser || '';
+      setDetailRow('row-agency',            'cell-agency',            card.agency);
+      setDetailRow('row-productionCompany', 'cell-productionCompany', card.productionCompany);
+
+      // 制作スタッフ
+      const staffBody    = document.getElementById('staff-table-body');
+      const staffSection = document.getElementById('section-staff');
+      staffBody.innerHTML = '';
+
+      if (card.creativeDirector && card.creativeDirector.trim()) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<th>Creative Director</th><td>${card.creativeDirector.trim()}</td>`;
+        staffBody.appendChild(tr);
+      }
+
+      if (card.staff && card.staff.trim()) {
+        card.staff.split(',').forEach(pair => {
+          const colonIdx = pair.indexOf(':');
+          if (colonIdx === -1) return;
+          const role = pair.slice(0, colonIdx).trim();
+          const name = pair.slice(colonIdx + 1).trim();
+          if (role && name) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<th>${role}</th><td>${name}</td>`;
+            staffBody.appendChild(tr);
+          }
+        });
+      }
+
+      staffSection.style.display = staffBody.children.length > 0 ? '' : 'none';
+      document.title = `${card.title} | ACC CASE LIBRARY`;
+
+      // 関連情報：URLがあるものだけ表示
+      const relatedLinks = [
+        { url: card.xUrl,      label: 'Xで見る',      icon: 'x'     },
+        { url: card.videoUrl,  label: '動画を見る',    icon: 'video' },
+        { url: card.siteUrl,   label: '公式サイトを見る', icon: 'site' },
+      ].filter(item => item.url && item.url.trim());
+
+      const relatedSide  = document.getElementById('related-side');
+      const relatedLinksEl = document.getElementById('related-links');
+      relatedLinksEl.innerHTML = '';
+
+      if (relatedLinks.length > 0) {
+        relatedSide.style.display = '';
+        relatedLinks.forEach(item => {
+          const a = document.createElement('a');
+          a.className = 'side-link';
+          a.href = item.url;
+          a.target = '_blank';
+          a.rel = 'noopener';
+
+          const iconSvg = {
+            x: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
+            video: `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>`,
+            site: `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+          }[item.icon];
+
+          const extIcon = `<svg class="side-link-ext" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+
+          a.innerHTML = `<div class="side-link-icon">${iconSvg}</div><span class="side-link-label">${item.label}</span>${extIcon}`;
+          relatedLinksEl.appendChild(a);
+        });
+      } else {
+        relatedSide.style.display = 'none';
+      }
+
+      // Prev nav
+      const prevEl = document.getElementById('nav-prev');
+      if (currentId > 0) {
+        prevEl.href = `detail.html?id=${currentId - 1}`;
+        document.getElementById('prev-title').textContent = cards[currentId - 1].title;
+        prevEl.style.visibility = '';
+      } else {
+        prevEl.style.visibility = 'hidden';
+      }
+
+      // Next nav
+      const nextEl = document.getElementById('nav-next');
+      if (currentId < cards.length - 1) {
+        nextEl.href = `detail.html?id=${currentId + 1}`;
+        document.getElementById('next-title').textContent = cards[currentId + 1].title;
+        nextEl.style.visibility = '';
+      } else {
+        nextEl.style.visibility = 'hidden';
+      }
+    }
+
+    loadPage();
+  </script>
+</body>
+</html>
