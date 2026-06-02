@@ -663,7 +663,7 @@
   <script>
     // GAS Web App URL — デプロイ後のURLをここに貼り付けてください
     const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw7bxyoEvsdpNhpR_KdEqI6JovXI6v6r99rTBRnSdMNBb9DkVYRNmxhH3knlMJVtdKq/exec';
-    const CACHE_KEY = 'acc_cards_cache';
+    const CACHE_KEY = 'acc_cards_cache_v4';
     const CACHE_TTL = 5 * 60 * 1000;
 
     function getCache() {
@@ -755,8 +755,9 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (data.error) throw new Error(data.error);
-        setCache(data.cards);
-        await initPage(data.cards);
+        const sorted = data.cards.slice().sort((a, b) => b.year - a.year);
+        setCache(sorted);
+        await initPage(sorted);
         document.getElementById('loading-state').style.display = 'none';
         document.getElementById('page-content').style.display  = '';
       } catch (err) {

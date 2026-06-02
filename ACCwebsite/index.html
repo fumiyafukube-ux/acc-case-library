@@ -620,7 +620,7 @@
 
   <script>
     const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw7bxyoEvsdpNhpR_KdEqI6JovXI6v6r99rTBRnSdMNBb9DkVYRNmxhH3knlMJVtdKq/exec';
-    const CACHE_KEY = 'acc_cards_cache';
+    const CACHE_KEY = 'acc_cards_cache_v4';
     const CACHE_TTL = 5 * 60 * 1000; // 5分間キャッシュ
 
     function getCache() {
@@ -851,7 +851,59 @@
         cardObserver.observe(a);
       });
 
-      applyFilters();
+      // 詳細ページから戻ってきた場合は状態を復元
+      const restoredScrollY = restoreFilterState();
+      applyFilters(restoredScrollY === null); // 復元時はページをリセットしない
+      if (restoredScrollY !== null) {
+        requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, restoredScrollY)));
+      }
+    }
+
+    // ===== フィルター状態の保存・復元 =====
+    const FILTER_STATE_KEY = 'acc_filter_state';
+
+    function saveFilterState() {
+      const state = {
+        search: document.getElementById('search-input').value,
+        years:  [...document.querySelectorAll('.nendai-opt:checked')].map(cb => cb.value),
+        medals: [...document.querySelectorAll('.medal-opt:checked')].map(cb => cb.value),
+        divs:   [...document.querySelectorAll('.bumon-opt:checked')].map(cb => cb.value),
+        shown:  shownCount,
+        scrollY: window.scrollY,
+      };
+      sessionStorage.setItem(FILTER_STATE_KEY, JSON.stringify(state));
+    }
+
+    // 復元成功時は scrollY を返す、なければ null
+    function restoreFilterState() {
+      try {
+        const raw = sessionStorage.getItem(FILTER_STATE_KEY);
+        if (!raw) return null;
+        const state = JSON.parse(raw);
+
+        // 検索テキスト
+        document.getElementById('search-input').value = state.search || '';
+
+        // 年フィルター
+        if (state.years) {
+          document.querySelectorAll('.nendai-opt').forEach(cb => { cb.checked = state.years.includes(cb.value); });
+          document.getElementById('nendai-all').checked = [...document.querySelectorAll('.nendai-opt')].every(cb => cb.checked);
+        }
+        // メダルフィルター
+        if (state.medals) {
+          document.querySelectorAll('.medal-opt').forEach(cb => { cb.checked = state.medals.includes(cb.value); });
+          document.getElementById('medal-all').checked = [...document.querySelectorAll('.medal-opt')].every(cb => cb.checked);
+        }
+        // 部門フィルター
+        if (state.divs) {
+          document.querySelectorAll('.bumon-opt').forEach(cb => { cb.checked = state.divs.includes(cb.value); });
+          document.getElementById('bumon-all').checked = [...document.querySelectorAll('.bumon-opt')].every(cb => cb.checked);
+        }
+        // 表示件数
+        if (state.shown) shownCount = state.shown;
+
+        return state.scrollY ?? 0;
+      } catch { return null; }
     }
 
     // ===== FILTER + PAGINATION =====
@@ -887,13 +939,18 @@
       applyFilters(false);
     });
 
+    // カードクリック時にフィルター状態を保存（詳細ページから戻ったとき復元するため）
+    grid.addEventListener('click', e => {
+      if (e.target.closest('a.card')) saveFilterState();
+    });
+
     // ===== FETCH FROM GAS =====
     async function loadCards() {
       // キャッシュがあれば即座に表示
       const cached = getCache();
       if (cached) {
         hideLoading();
-        renderCards(cached);
+        renderCards(cached.slice().sort((a, b) => b.year - a.year));
         return;
       }
       // なければGASから取得
@@ -903,9 +960,10 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (data.error) throw new Error(data.error);
-        setCache(data.cards);
+        const sorted = data.cards.slice().sort((a, b) => b.year - a.year);
+        setCache(sorted);
         hideLoading();
-        renderCards(data.cards);
+        renderCards(sorted);
       } catch (err) {
         showError(err.message);
       }
