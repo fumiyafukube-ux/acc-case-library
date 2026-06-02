@@ -57,8 +57,50 @@
       border: 1px solid #d1d5db;
       border-radius: 24px;
       padding: 9px 16px;
-      width: 400px;
+      width: 440px;
       gap: 8px;
+      position: relative;
+    }
+
+    /* ===== SEARCH SUGGEST ===== */
+    .suggest-box {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: -1px;
+      right: -1px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+      z-index: 400;
+      display: none;
+      overflow: hidden;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .suggest-box.open { display: block; }
+    .suggest-section { border-bottom: 1px solid #f3f4f6; }
+    .suggest-section:last-child { border-bottom: none; }
+    .suggest-label {
+      font-size: 10px; font-weight: 700; color: #9ca3af;
+      letter-spacing: 0.12em; padding: 10px 18px 4px;
+      text-transform: uppercase; display: block;
+    }
+    .suggest-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 18px; cursor: pointer;
+      font-size: 13px; transition: background 0.1s; color: #1a1a1a;
+    }
+    .suggest-item:hover { background: #f9fafb; }
+    .suggest-item-title {
+      flex: 1; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .suggest-item-sub { font-size: 12px; color: #9ca3af; flex-shrink: 0; }
+    .suggest-badge {
+      font-size: 10px; color: #6b7280;
+      border: 1px solid #e5e7eb; padding: 1px 7px;
+      border-radius: 4px; flex-shrink: 0;
     }
 
     .search-bar input {
@@ -471,10 +513,11 @@
       </div>
     </div>
     <div class="search-bar">
-      <input type="text" placeholder="キーワードから探す（企業名、作品名、コピー、制作会社など）">
       <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
       </svg>
+      <input type="text" id="search-input" placeholder="作品名・会社名・スタッフ名で検索">
+      <div class="suggest-box" id="suggest-box"></div>
     </div>
   </header>
 
@@ -577,7 +620,7 @@
 
   <script>
     const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw7bxyoEvsdpNhpR_KdEqI6JovXI6v6r99rTBRnSdMNBb9DkVYRNmxhH3knlMJVtdKq/exec';
-    const CACHE_KEY = 'acc_cards_cache';
+    const CACHE_KEY = 'acc_cards_cache_v4';
     const CACHE_TTL = 5 * 60 * 1000; // 5分間キャッシュ
 
     function getCache() {
@@ -596,10 +639,58 @@
       } catch {}
     }
 
+    // ===== SEARCH =====
+    let allCards = [];
+
+    // 日本語⇔英語の社名対応表（どちらで検索しても両方ヒット）
+    const AGENCY_MAP = [
+      ['博報堂',          'hakuhodo'],
+      ['博報堂ケトル',    'hakuhodo kettle'],
+      ['電通',            'dentsu'],
+      ['電通デジタル',    'dentsu digital'],
+      ['電通アイソバー',  'dentsu isobar'],
+      ['ADK',             'アサツーディ・ケイ'],
+      ['大広',            'daiko'],
+      ['読売広告社',      'yomiko'],
+      ['東急エージェンシー', 'tokyu agency'],
+      ['マッキャン',      'mccann'],
+      ['オグルヴィー',    'ogilvy'],
+      ['サイバーエージェント', 'cyberagent'],
+      ['フロンテッジ',    'frontage'],
+      ['プラップジャパン','prap'],
+      ['ジェイアール東日本企画', 'jeki'],
+      ['JR東日本企画',    'jeki'],
+      ['I&S BBDO',        'i&s bbdo'],
+    ];
+
+    function buildSearchText(c) {
+      return [
+        c.title, c.advertiser, c.agency, c.productionCompany,
+        c.creativeDirector, c.staff, c.workNumber, c.productName,
+      ].filter(Boolean).join(' ').toLowerCase();
+    }
+
+    // クエリを日英両方に展開
+    function expandQuery(q) {
+      const terms = new Set([q]);
+      AGENCY_MAP.forEach(([a, b]) => {
+        const aL = a.toLowerCase(), bL = b.toLowerCase();
+        if (q.includes(aL)) terms.add(bL);
+        if (q.includes(bL)) terms.add(aL);
+      });
+      return [...terms];
+    }
+
+    function escHtml(s) {
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     // ===== YEAR GRID (static) =====
     const yearGrid = document.getElementById('nendai-grid');
     const yearValues = [];
-    for (let y = 2025; y >= 2016; y--) yearValues.push({ label: y + '年', value: String(y) });
+    for (let y = 2025; y >= 2018; y--) yearValues.push({ label: y + '年', value: String(y) });
 
     const cols = 5;
     const rows = Math.ceil(yearValues.length / cols);
@@ -696,6 +787,7 @@
 
     // ===== RENDER CARDS =====
     function renderCards(cards) {
+      allCards = cards; // 検索用に保持
       // 既存カードをクリア（再試行時）
       grid.innerHTML = '';
       cardEls.length = 0;
@@ -704,11 +796,12 @@
         const a = document.createElement('a');
         a.href = `detail.html?id=${i}`;
         a.className = 'card';
-        a.dataset.year     = String(c.year);
-        a.dataset.medal    = c.medal;
-        a.dataset.division = c.division;
-        a.dataset.col      = i % 3;
-        a.style.display    = 'none';
+        a.dataset.year       = String(c.year);
+        a.dataset.medal      = c.medal;
+        a.dataset.division   = c.division;
+        a.dataset.col        = i % 3;
+        a.dataset.searchText = buildSearchText(c);
+        a.style.display      = 'none';
 
         const thumb = document.createElement('div');
         thumb.className = 'card-thumb';
@@ -758,12 +851,67 @@
         cardObserver.observe(a);
       });
 
-      applyFilters();
+      // 詳細ページから戻ってきた場合は状態を復元
+      const restoredScrollY = restoreFilterState();
+      applyFilters(restoredScrollY === null); // 復元時はページをリセットしない
+      if (restoredScrollY !== null) {
+        requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, restoredScrollY)));
+      }
+    }
+
+    // ===== フィルター状態の保存・復元 =====
+    const FILTER_STATE_KEY = 'acc_filter_state';
+
+    function saveFilterState() {
+      const state = {
+        search: document.getElementById('search-input').value,
+        years:  [...document.querySelectorAll('.nendai-opt:checked')].map(cb => cb.value),
+        medals: [...document.querySelectorAll('.medal-opt:checked')].map(cb => cb.value),
+        divs:   [...document.querySelectorAll('.bumon-opt:checked')].map(cb => cb.value),
+        shown:  shownCount,
+        scrollY: window.scrollY,
+      };
+      sessionStorage.setItem(FILTER_STATE_KEY, JSON.stringify(state));
+    }
+
+    // 復元成功時は scrollY を返す、なければ null
+    function restoreFilterState() {
+      try {
+        const raw = sessionStorage.getItem(FILTER_STATE_KEY);
+        if (!raw) return null;
+        const state = JSON.parse(raw);
+
+        // 検索テキスト
+        document.getElementById('search-input').value = state.search || '';
+
+        // 年フィルター
+        if (state.years) {
+          document.querySelectorAll('.nendai-opt').forEach(cb => { cb.checked = state.years.includes(cb.value); });
+          document.getElementById('nendai-all').checked = [...document.querySelectorAll('.nendai-opt')].every(cb => cb.checked);
+        }
+        // メダルフィルター
+        if (state.medals) {
+          document.querySelectorAll('.medal-opt').forEach(cb => { cb.checked = state.medals.includes(cb.value); });
+          document.getElementById('medal-all').checked = [...document.querySelectorAll('.medal-opt')].every(cb => cb.checked);
+        }
+        // 部門フィルター
+        if (state.divs) {
+          document.querySelectorAll('.bumon-opt').forEach(cb => { cb.checked = state.divs.includes(cb.value); });
+          document.getElementById('bumon-all').checked = [...document.querySelectorAll('.bumon-opt')].every(cb => cb.checked);
+        }
+        // 表示件数
+        if (state.shown) shownCount = state.shown;
+
+        return state.scrollY ?? 0;
+      } catch { return null; }
     }
 
     // ===== FILTER + PAGINATION =====
     function applyFilters(resetPage = true) {
       if (resetPage) shownCount = PAGE_SIZE;
+
+      const rawQ   = (document.getElementById('search-input').value || '').trim().toLowerCase();
+      const terms  = rawQ ? expandQuery(rawQ) : [];
 
       const selYears  = [...document.querySelectorAll('.nendai-opt:checked')].map(cb => cb.value);
       const selMedals = [...document.querySelectorAll('.medal-opt:checked')].map(cb => cb.value);
@@ -773,7 +921,8 @@
         const y = selYears.length  === 0 || selYears.includes(el.dataset.year);
         const m = selMedals.length === 0 || selMedals.includes(el.dataset.medal);
         const d = selDivs.length   === 0 || selDivs.includes(el.dataset.division);
-        return y && m && d;
+        const s = terms.length === 0 || terms.some(t => (el.dataset.searchText || '').includes(t));
+        return y && m && d && s;
       });
 
       cardEls.forEach(el => el.style.display = 'none');
@@ -790,13 +939,18 @@
       applyFilters(false);
     });
 
+    // カードクリック時にフィルター状態を保存（詳細ページから戻ったとき復元するため）
+    grid.addEventListener('click', e => {
+      if (e.target.closest('a.card')) saveFilterState();
+    });
+
     // ===== FETCH FROM GAS =====
     async function loadCards() {
       // キャッシュがあれば即座に表示
       const cached = getCache();
       if (cached) {
         hideLoading();
-        renderCards(cached);
+        renderCards(cached.slice().sort((a, b) => b.year - a.year));
         return;
       }
       // なければGASから取得
@@ -806,15 +960,107 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (data.error) throw new Error(data.error);
-        setCache(data.cards);
+        const sorted = data.cards.slice().sort((a, b) => b.year - a.year);
+        setCache(sorted);
         hideLoading();
-        renderCards(data.cards);
+        renderCards(sorted);
       } catch (err) {
         showError(err.message);
       }
     }
 
     loadCards();
+
+    // ===== KEYWORD SEARCH + SUGGEST =====
+    const searchInput = document.getElementById('search-input');
+    const suggestBox  = document.getElementById('suggest-box');
+
+    searchInput.addEventListener('input', () => {
+      applyFilters();
+      showSuggestions(searchInput.value.trim().toLowerCase());
+    });
+    searchInput.addEventListener('focus', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (q.length >= 1) showSuggestions(q);
+    });
+    // 外側クリックで閉じる
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.search-bar')) suggestBox.classList.remove('open');
+    });
+    // イベント委譲でサジェスト選択
+    suggestBox.addEventListener('click', e => {
+      const item = e.target.closest('.suggest-item');
+      if (!item) return;
+      if (item.dataset.action === 'go')     window.location = item.dataset.value;
+      if (item.dataset.action === 'search') { searchInput.value = item.dataset.value; suggestBox.classList.remove('open'); applyFilters(); }
+    });
+
+    function showSuggestions(q) {
+      if (!q || q.length < 1 || allCards.length === 0) {
+        suggestBox.classList.remove('open'); return;
+      }
+
+      const titleHits   = [];
+      const companyMap  = new Map(); // name → badge
+      const peopleMap   = new Map();
+
+      allCards.forEach((c, i) => {
+        // 作品名
+        if (c.title && c.title.toLowerCase().includes(q)) {
+          titleHits.push({ title: c.title, sub: c.advertiser || '', id: i });
+        }
+        // 会社名
+        [[c.advertiser, '広告主'], [c.agency, '広告会社'], [c.productionCompany, '制作会社']].forEach(([name, badge]) => {
+          if (name && name.toLowerCase().includes(q) && !companyMap.has(name)) companyMap.set(name, badge);
+        });
+        // スタッフ名
+        if (c.creativeDirector && c.creativeDirector.toLowerCase().includes(q) && !peopleMap.has(c.creativeDirector)) {
+          peopleMap.set(c.creativeDirector, 'CD');
+        }
+        if (c.staff) {
+          c.staff.split(',').forEach(pair => {
+            const ci = pair.indexOf(':');
+            if (ci === -1) return;
+            const name = pair.slice(ci + 1).trim();
+            if (name && name.toLowerCase().includes(q) && !peopleMap.has(name)) peopleMap.set(name, 'スタッフ');
+          });
+        }
+      });
+
+      let html = '';
+
+      if (titleHits.length > 0) {
+        html += `<div class="suggest-section"><span class="suggest-label">作品</span>`;
+        titleHits.slice(0, 5).forEach(m => {
+          html += `<div class="suggest-item" data-action="go" data-value="detail.html?id=${m.id}">
+            <span class="suggest-item-title">${escHtml(m.title)}</span>
+            <span class="suggest-item-sub">${escHtml(m.sub)}</span>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      if (companyMap.size > 0 || peopleMap.size > 0) {
+        html += `<div class="suggest-section"><span class="suggest-label">会社・人物</span>`;
+        [...companyMap.entries()].slice(0, 5).forEach(([name, badge]) => {
+          html += `<div class="suggest-item" data-action="search" data-value="${escHtml(name)}">
+            <span class="suggest-item-title">${escHtml(name)}</span>
+            <span class="suggest-badge">${badge}</span>
+          </div>`;
+        });
+        [...peopleMap.entries()].slice(0, 3).forEach(([name, badge]) => {
+          html += `<div class="suggest-item" data-action="search" data-value="${escHtml(name)}">
+            <span class="suggest-item-title">${escHtml(name)}</span>
+            <span class="suggest-badge">${badge}</span>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      if (!html) { suggestBox.classList.remove('open'); return; }
+      suggestBox.innerHTML = html;
+      suggestBox.classList.add('open');
+    }
   </script>
 </body>
 </html>
