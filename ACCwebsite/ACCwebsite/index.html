@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACC CASE LIBRARY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      color: #1a1a1a;
+      background: #fff;
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      padding: 18px 40px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .logo-text h1 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .logo-text p {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      border: 1px solid #d1d5db;
+      border-radius: 24px;
+      padding: 9px 16px;
+      width: 440px;
+      gap: 8px;
+      position: relative;
+    }
+
+    /* ===== SEARCH SUGGEST ===== */
+    .suggest-box {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: -1px;
+      right: -1px;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+      z-index: 400;
+      display: none;
+      overflow: hidden;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .suggest-box.open { display: block; }
+    .suggest-section { border-bottom: 1px solid #f3f4f6; }
+    .suggest-section:last-child { border-bottom: none; }
+    .suggest-label {
+      font-size: 10px; font-weight: 700; color: #9ca3af;
+      letter-spacing: 0.12em; padding: 10px 18px 4px;
+      text-transform: uppercase; display: block;
+    }
+    .suggest-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 18px; cursor: pointer;
+      font-size: 13px; transition: background 0.1s; color: #1a1a1a;
+    }
+    .suggest-item:hover { background: #f9fafb; }
+    .suggest-item-title {
+      flex: 1; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .suggest-item-sub { font-size: 12px; color: #9ca3af; flex-shrink: 0; }
+    .suggest-badge {
+      font-size: 10px; color: #6b7280;
+      border: 1px solid #e5e7eb; padding: 1px 7px;
+      border-radius: 4px; flex-shrink: 0;
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 13px;
+      color: #6b7280;
+      font-family: 'Noto Sans JP', sans-serif;
+      background: transparent;
+    }
+
+    .search-bar input::placeholder { color: #9ca3af; }
+
+    .search-icon { color: #6b7280; cursor: pointer; flex-shrink: 0; }
+
+    /* ===== FILTER BAR ===== */
+    .filter-bar {
+      padding: 16px 60px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      position: relative;
+      background: #fafafa;
+    }
+
+    .filter-count {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-right: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .filter-wrap {
+      position: relative;
+    }
+
+    .filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 20px;
+      border: 1px solid #d1d5db;
+      border-radius: 100px;
+      background: white;
+      font-size: 13px;
+      font-family: 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      color: #1a1a1a;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .filter-btn:hover {
+      border-color: #9ca3af;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .filter-btn.open {
+      border-color: #1a1a1a;
+      background: #1a1a1a;
+      color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .filter-btn.open .chevron { stroke: white; }
+
+    .chevron {
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+    .filter-btn.open .chevron { transform: rotate(180deg); }
+
+    /* ===== DROPDOWNS (メダル・部門) ===== */
+    .dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      background: white;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      z-index: 200;
+      min-width: 300px;
+      padding: 8px 0;
+      display: none;
+      white-space: nowrap;
+    }
+
+    .dropdown.open { display: block; }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.1s;
+      user-select: none;
+    }
+
+    .dropdown-item:hover { background: #f9fafb; }
+
+    .dropdown-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #1a1a1a;
+      flex-shrink: 0;
+    }
+
+    /* ===== MEGA MENU (年代) ===== */
+    .mega-menu {
+      position: absolute;
+      top: calc(100% + 1px);
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-top: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      z-index: 200;
+      padding: 20px 40px 24px;
+      display: none;
+    }
+
+    .mega-menu.open { display: block; }
+
+    .mega-all-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 16px;
+      cursor: pointer;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    .mega-all-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #1a1a1a;
+    }
+
+    .mega-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2px 0;
+    }
+
+    .mega-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 0;
+      cursor: pointer;
+      font-size: 13px;
+      user-select: none;
+    }
+
+    .mega-item input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      accent-color: #1a1a1a;
+      flex-shrink: 0;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      background: #111;
+      color: white;
+      padding: 64px 40px;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: 44px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 18px;
+      line-height: 1.2;
+    }
+
+    .hero-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,0.45);
+      line-height: 2;
+    }
+
+    /* ===== CARD GRID ===== */
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 52px 60px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 60px 56px;
+    }
+
+    .card {
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .card.card-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card.card-visible:hover {
+      transform: translateY(-12px);
+    }
+
+    .card-thumb {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #f1f2f4;
+      position: relative;
+      overflow: hidden;
+      border-radius: 6px;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .card.card-visible:hover .card-thumb {
+      box-shadow: 0 20px 48px rgba(0,0,0,0.18);
+    }
+
+    .card-thumb::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom right,
+          transparent calc(50% - 0.5px),
+          #d1d5db calc(50% - 0.5px),
+          #d1d5db calc(50% + 0.5px),
+          transparent calc(50% + 0.5px)),
+        linear-gradient(to top right,
+          transparent calc(50% - 0.5px),
+          #d1d5db calc(50% - 0.5px),
+          #d1d5db calc(50% + 0.5px),
+          transparent calc(50% + 0.5px));
+    }
+
+    .card-thumb img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    /* 画像ありのカードはX印を非表示 */
+    .card-thumb.has-image::before { display: none; }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .tag-type {
+      font-size: 11px;
+      color: #6b7280;
+      border: 1px solid #9ca3af;
+      padding: 1px 7px;
+      border-radius: 2px;
+      line-height: 1.6;
+    }
+
+    .tag-medal {
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 2px;
+      border: 1px solid;
+      line-height: 1.6;
+    }
+
+    .tag-medal.grand-prix { color: #ea6c00; border-color: #ea6c00; }
+    .tag-medal.gold       { color: #b8860b; border-color: #b8860b; }
+    .tag-medal.silver     { color: #6b7280; border-color: #6b7280; }
+    .tag-medal.bronze     { color: #c0392b; border-color: #c0392b; }
+    .tag-medal.finalist   { color: #6b7280; border-color: #6b7280; }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    .card-advertiser {
+      font-size: 12px;
+      color: #4b5563;
+      margin-top: 3px;
+    }
+
+    .card-year {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    /* ===== LOAD MORE ===== */
+    .load-more-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 40px 0 60px;
+    }
+
+    .load-more-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 52px;
+      border: 1px solid #d1d5db;
+      background: white;
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      border-radius: 2px;
+      color: #1a1a1a;
+      transition: background 0.15s;
+    }
+
+    .load-more-btn:hover { background: #f9fafb; }
+
+    /* ===== OVERLAY ===== */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+    }
+
+    .overlay.open { display: block; }
+
+    /* ===== LOADING / ERROR ===== */
+    .state-box {
+      text-align: center;
+      padding: 80px 0;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #1a1a1a;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .state-box p {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+
+    .retry-btn {
+      padding: 10px 28px;
+      border: 1px solid #d1d5db;
+      background: white;
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      border-radius: 2px;
+      color: #1a1a1a;
+      transition: background 0.15s;
+    }
+
+    .retry-btn:hover { background: #f9fafb; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-logo">
+      <div class="logo-icon"></div>
+      <div class="logo-text">
+        <h1>ACC CASE LIBRARY</h1>
+        <p>広告ACC 作品事例集（BC・PR）</p>
+      </div>
+    </div>
+    <div class="search-bar">
+      <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" id="search-input" placeholder="作品名・会社名・スタッフ名で検索">
+      <div class="suggest-box" id="suggest-box"></div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="hero-eyebrow">広告ACC 作品事例集 BC・PR</p>
+    <h2 class="hero-title">ACC CASE LIBRARY</h2>
+    <p class="hero-desc">全日本シーエム放送連盟が主催する<br>「ACC TOKYO CREATIVITY AWARDS」BC・PR部門の受賞作品を収録しています。</p>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar" id="filterBar">
+    <span class="filter-count" id="filter-count">読み込み中...</span>
+
+    <!-- 年代 -->
+    <div class="filter-wrap">
+      <button class="filter-btn" id="btn-nendai" onclick="toggleFilter('nendai')">
+        年代
+        <svg class="chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- メダル -->
+    <div class="filter-wrap">
+      <button class="filter-btn" id="btn-medal" onclick="toggleFilter('medal')">
+        メダル
+        <svg class="chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div class="dropdown" id="dropdown-medal">
+        <label class="dropdown-item">
+          <input type="checkbox" id="medal-all" onchange="toggleAll(this, '.medal-opt')"> すべて
+        </label>
+        <label class="dropdown-item"><input type="checkbox" class="medal-opt" value="grand-prix" onchange="onFilterChange('medal-all','.medal-opt')"> グランプリ</label>
+        <label class="dropdown-item"><input type="checkbox" class="medal-opt" value="gold"       onchange="onFilterChange('medal-all','.medal-opt')"> ゴールド</label>
+        <label class="dropdown-item"><input type="checkbox" class="medal-opt" value="silver"     onchange="onFilterChange('medal-all','.medal-opt')"> シルバー</label>
+        <label class="dropdown-item"><input type="checkbox" class="medal-opt" value="bronze"     onchange="onFilterChange('medal-all','.medal-opt')"> ブロンズ</label>
+        <label class="dropdown-item"><input type="checkbox" class="medal-opt" value="finalist"   onchange="onFilterChange('medal-all','.medal-opt')"> ファイナリスト</label>
+      </div>
+    </div>
+
+    <!-- 部門 -->
+    <div class="filter-wrap">
+      <button class="filter-btn" id="btn-bumon" onclick="toggleFilter('bumon')">
+        部門
+        <svg class="chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div class="dropdown" id="dropdown-bumon">
+        <label class="dropdown-item">
+          <input type="checkbox" id="bumon-all" onchange="toggleAll(this, '.bumon-opt')"> すべて
+        </label>
+        <label class="dropdown-item"><input type="checkbox" class="bumon-opt" value="PR"   onchange="onFilterChange('bumon-all','.bumon-opt')"> PR</label>
+        <label class="dropdown-item"><input type="checkbox" class="bumon-opt" value="BC-A" onchange="onFilterChange('bumon-all','.bumon-opt')"> BC A：デジタル・エクスペリエンス</label>
+        <label class="dropdown-item"><input type="checkbox" class="bumon-opt" value="BC-B" onchange="onFilterChange('bumon-all','.bumon-opt')"> BC B：プロモーション/アクティベーション</label>
+        <label class="dropdown-item"><input type="checkbox" class="bumon-opt" value="BC-C" onchange="onFilterChange('bumon-all','.bumon-opt')"> BC C：PR</label>
+        <label class="dropdown-item"><input type="checkbox" class="bumon-opt" value="BC-D" onchange="onFilterChange('bumon-all','.bumon-opt')"> BC D：ソーシャル・インフルーエンス</label>
+      </div>
+    </div>
+
+    <!-- 年代 メガメニュー (full width, child of filter-bar) -->
+    <div class="mega-menu" id="dropdown-nendai">
+      <label class="mega-all-row">
+        <input type="checkbox" id="nendai-all" onchange="toggleAll(this, '.nendai-opt')"> すべて
+      </label>
+      <div class="mega-grid" id="nendai-grid"></div>
+    </div>
+  </div>
+
+  <!-- OVERLAY (close on outside click) -->
+  <div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <!-- Loading state -->
+    <div class="state-box" id="loading-state">
+      <div class="spinner"></div>
+      <p>データを読み込んでいます...</p>
+    </div>
+    <!-- Error state -->
+    <div class="state-box" id="error-state" style="display:none;">
+      <p id="error-msg">データの読み込みに失敗しました</p>
+      <button class="retry-btn" onclick="loadCards()">再試行</button>
+    </div>
+    <!-- Card grid (hidden until loaded) -->
+    <div class="card-grid" id="cardGrid" style="display:none;"></div>
+    <div class="load-more-wrap" id="load-more-wrap" style="display:none;">
+      <button class="load-more-btn" id="load-more-btn">
+        もっと見る
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+    </div>
+  </main>
+
+  <script>
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw7bxyoEvsdpNhpR_KdEqI6JovXI6v6r99rTBRnSdMNBb9DkVYRNmxhH3knlMJVtdKq/exec';
+    const CACHE_KEY = 'acc_cards_cache_v4';
+    const CACHE_TTL = 5 * 60 * 1000; // 5分間キャッシュ
+
+    function getCache() {
+      try {
+        const item = localStorage.getItem(CACHE_KEY);
+        if (!item) return null;
+        const { cards, timestamp } = JSON.parse(item);
+        if (Date.now() - timestamp > CACHE_TTL) return null;
+        return cards;
+      } catch { return null; }
+    }
+
+    function setCache(cards) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ cards, timestamp: Date.now() }));
+      } catch {}
+    }
+
+    // ===== SEARCH =====
+    let allCards = [];
+
+    // 日本語⇔英語の社名対応表（どちらで検索しても両方ヒット）
+    const AGENCY_MAP = [
+      ['博報堂',          'hakuhodo'],
+      ['博報堂ケトル',    'hakuhodo kettle'],
+      ['電通',            'dentsu'],
+      ['電通デジタル',    'dentsu digital'],
+      ['電通アイソバー',  'dentsu isobar'],
+      ['ADK',             'アサツーディ・ケイ'],
+      ['大広',            'daiko'],
+      ['読売広告社',      'yomiko'],
+      ['東急エージェンシー', 'tokyu agency'],
+      ['マッキャン',      'mccann'],
+      ['オグルヴィー',    'ogilvy'],
+      ['サイバーエージェント', 'cyberagent'],
+      ['フロンテッジ',    'frontage'],
+      ['プラップジャパン','prap'],
+      ['ジェイアール東日本企画', 'jeki'],
+      ['JR東日本企画',    'jeki'],
+      ['I&S BBDO',        'i&s bbdo'],
+    ];
+
+    function buildSearchText(c) {
+      return [
+        c.title, c.advertiser, c.agency, c.productionCompany,
+        c.creativeDirector, c.staff, c.workNumber, c.productName,
+      ].filter(Boolean).join(' ').toLowerCase();
+    }
+
+    // クエリを日英両方に展開
+    function expandQuery(q) {
+      const terms = new Set([q]);
+      AGENCY_MAP.forEach(([a, b]) => {
+        const aL = a.toLowerCase(), bL = b.toLowerCase();
+        if (q.includes(aL)) terms.add(bL);
+        if (q.includes(bL)) terms.add(aL);
+      });
+      return [...terms];
+    }
+
+    function escHtml(s) {
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ===== YEAR GRID (static) =====
+    const yearGrid = document.getElementById('nendai-grid');
+    const yearValues = [];
+    for (let y = 2025; y >= 2018; y--) yearValues.push({ label: y + '年', value: String(y) });
+
+    const cols = 5;
+    const rows = Math.ceil(yearValues.length / cols);
+
+    const colMajor = [];
+    for (let c = 0; c < cols; c++) {
+      for (let r = 0; r < rows; r++) {
+        const idx = c * rows + r;
+        colMajor.push(yearValues[idx] || null);
+      }
+    }
+    colMajor.forEach(y => {
+      if (!y) { yearGrid.appendChild(document.createElement('div')); return; }
+      const label = document.createElement('label');
+      label.className = 'mega-item';
+      label.innerHTML = `<input type="checkbox" class="nendai-opt" value="${y.value}" onchange="onFilterChange('nendai-all','.nendai-opt')"> ${y.label}`;
+      yearGrid.appendChild(label);
+    });
+
+    // ===== FILTER TOGGLE =====
+    let current = null;
+
+    function toggleFilter(name) {
+      const menu = document.getElementById('dropdown-' + name);
+      const btn  = document.getElementById('btn-' + name);
+      if (current === name) { closeAll(); return; }
+      closeAll();
+      menu.classList.add('open');
+      btn.classList.add('open');
+      document.getElementById('overlay').classList.add('open');
+      current = name;
+    }
+
+    function closeAll() {
+      document.querySelectorAll('.dropdown, .mega-menu').forEach(el => el.classList.remove('open'));
+      document.querySelectorAll('.filter-btn').forEach(el => el.classList.remove('open'));
+      document.getElementById('overlay').classList.remove('open');
+      current = null;
+    }
+
+    // ===== CHECKBOX LOGIC =====
+    function toggleAll(allCheckbox, optSelector) {
+      document.querySelectorAll(optSelector).forEach(cb => cb.checked = allCheckbox.checked);
+      applyFilters();
+    }
+
+    function onFilterChange(allId, optSelector) {
+      const opts = document.querySelectorAll(optSelector);
+      document.getElementById(allId).checked = [...opts].every(cb => cb.checked);
+      applyFilters();
+    }
+
+    // ===== PAGE STATE =====
+    const PAGE_SIZE = 12;
+    let filteredEls = [];
+    let shownCount  = PAGE_SIZE;
+
+    const grid    = document.getElementById('cardGrid');
+    const cardEls = [];
+
+    // ===== CARD ENTRANCE ANIMATION =====
+    const cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const delay = (Number(el.dataset.col) || 0) * 0.08;
+          el.style.transitionDelay = `${delay}s`;
+          el.classList.add('card-visible');
+          cardObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    // ===== LOADING / ERROR =====
+    function showLoading() {
+      document.getElementById('loading-state').style.display = '';
+      document.getElementById('error-state').style.display   = 'none';
+      document.getElementById('cardGrid').style.display      = 'none';
+      document.getElementById('load-more-wrap').style.display = 'none';
+      document.getElementById('filter-count').textContent    = '読み込み中...';
+    }
+
+    function hideLoading() {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('cardGrid').style.display      = '';
+    }
+
+    function showError(msg) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('error-state').style.display   = '';
+      document.getElementById('error-msg').textContent       = 'データの読み込みに失敗しました: ' + msg;
+      document.getElementById('filter-count').textContent    = '読み込みエラー';
+    }
+
+    // ===== RENDER CARDS =====
+    function renderCards(cards) {
+      allCards = cards; // 検索用に保持
+      // 既存カードをクリア（再試行時）
+      grid.innerHTML = '';
+      cardEls.length = 0;
+
+      cards.forEach((c, i) => {
+        const a = document.createElement('a');
+        a.href = `detail.html?id=${i}`;
+        a.className = 'card';
+        a.dataset.year       = String(c.year);
+        a.dataset.medal      = c.medal;
+        a.dataset.division   = c.division;
+        a.dataset.col        = i % 3;
+        a.dataset.searchText = buildSearchText(c);
+        a.style.display      = 'none';
+
+        const thumb = document.createElement('div');
+        thumb.className = 'card-thumb';
+        if (c.thumbnailUrl) {
+          thumb.classList.add('has-image');
+          const img = document.createElement('img');
+          img.alt = '';
+          img.onload  = () => { img.style.opacity = '1'; };
+          img.onerror = () => { thumb.classList.remove('has-image'); img.style.display = 'none'; };
+          img.src = c.thumbnailUrl;
+          thumb.appendChild(img);
+        }
+        a.appendChild(thumb);
+
+        const meta = document.createElement('div');
+        meta.className = 'card-meta';
+
+        const typeSpan = document.createElement('span');
+        typeSpan.className = 'tag-type';
+        typeSpan.textContent = c.division;
+
+        const medalSpan = document.createElement('span');
+        medalSpan.className = `tag-medal ${c.medal}`;
+        medalSpan.textContent = c.medalLabel;
+
+        meta.appendChild(typeSpan);
+        meta.appendChild(medalSpan);
+        a.appendChild(meta);
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'card-title';
+        titleDiv.textContent = c.title;
+        a.appendChild(titleDiv);
+
+        const advDiv = document.createElement('div');
+        advDiv.className = 'card-advertiser';
+        advDiv.textContent = c.advertiser;
+        a.appendChild(advDiv);
+
+        const yearDiv = document.createElement('div');
+        yearDiv.className = 'card-year';
+        yearDiv.textContent = `受賞年：${c.year}年`;
+        a.appendChild(yearDiv);
+
+        grid.appendChild(a);
+        cardEls.push(a);
+        cardObserver.observe(a);
+      });
+
+      // 詳細ページから戻ってきた場合は状態を復元
+      const restoredScrollY = restoreFilterState();
+      applyFilters(restoredScrollY === null); // 復元時はページをリセットしない
+      if (restoredScrollY !== null) {
+        requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, restoredScrollY)));
+      }
+    }
+
+    // ===== フィルター状態の保存・復元 =====
+    const FILTER_STATE_KEY = 'acc_filter_state';
+
+    function saveFilterState() {
+      const state = {
+        search: document.getElementById('search-input').value,
+        years:  [...document.querySelectorAll('.nendai-opt:checked')].map(cb => cb.value),
+        medals: [...document.querySelectorAll('.medal-opt:checked')].map(cb => cb.value),
+        divs:   [...document.querySelectorAll('.bumon-opt:checked')].map(cb => cb.value),
+        shown:  shownCount,
+        scrollY: window.scrollY,
+      };
+      sessionStorage.setItem(FILTER_STATE_KEY, JSON.stringify(state));
+    }
+
+    // 復元成功時は scrollY を返す、なければ null
+    function restoreFilterState() {
+      try {
+        const raw = sessionStorage.getItem(FILTER_STATE_KEY);
+        if (!raw) return null;
+        const state = JSON.parse(raw);
+
+        // 検索テキスト
+        document.getElementById('search-input').value = state.search || '';
+
+        // 年フィルター
+        if (state.years) {
+          document.querySelectorAll('.nendai-opt').forEach(cb => { cb.checked = state.years.includes(cb.value); });
+          document.getElementById('nendai-all').checked = [...document.querySelectorAll('.nendai-opt')].every(cb => cb.checked);
+        }
+        // メダルフィルター
+        if (state.medals) {
+          document.querySelectorAll('.medal-opt').forEach(cb => { cb.checked = state.medals.includes(cb.value); });
+          document.getElementById('medal-all').checked = [...document.querySelectorAll('.medal-opt')].every(cb => cb.checked);
+        }
+        // 部門フィルター
+        if (state.divs) {
+          document.querySelectorAll('.bumon-opt').forEach(cb => { cb.checked = state.divs.includes(cb.value); });
+          document.getElementById('bumon-all').checked = [...document.querySelectorAll('.bumon-opt')].every(cb => cb.checked);
+        }
+        // 表示件数
+        if (state.shown) shownCount = state.shown;
+
+        return state.scrollY ?? 0;
+      } catch { return null; }
+    }
+
+    // ===== FILTER + PAGINATION =====
+    function applyFilters(resetPage = true) {
+      if (resetPage) shownCount = PAGE_SIZE;
+
+      const rawQ   = (document.getElementById('search-input').value || '').trim().toLowerCase();
+      const terms  = rawQ ? expandQuery(rawQ) : [];
+
+      const selYears  = [...document.querySelectorAll('.nendai-opt:checked')].map(cb => cb.value);
+      const selMedals = [...document.querySelectorAll('.medal-opt:checked')].map(cb => cb.value);
+      const selDivs   = [...document.querySelectorAll('.bumon-opt:checked')].map(cb => cb.value);
+
+      filteredEls = cardEls.filter(el => {
+        const y = selYears.length  === 0 || selYears.includes(el.dataset.year);
+        const m = selMedals.length === 0 || selMedals.includes(el.dataset.medal);
+        const d = selDivs.length   === 0 || selDivs.includes(el.dataset.division);
+        const s = terms.length === 0 || terms.some(t => (el.dataset.searchText || '').includes(t));
+        return y && m && d && s;
+      });
+
+      cardEls.forEach(el => el.style.display = 'none');
+      filteredEls.slice(0, shownCount).forEach(el => el.style.display = '');
+
+      document.getElementById('filter-count').textContent = `${filteredEls.length}件の事例があります`;
+
+      const wrap = document.getElementById('load-more-wrap');
+      wrap.style.display = filteredEls.length > shownCount ? '' : 'none';
+    }
+
+    document.getElementById('load-more-btn').addEventListener('click', () => {
+      shownCount += PAGE_SIZE;
+      applyFilters(false);
+    });
+
+    // カードクリック時にフィルター状態を保存（詳細ページから戻ったとき復元するため）
+    grid.addEventListener('click', e => {
+      if (e.target.closest('a.card')) saveFilterState();
+    });
+
+    // ===== FETCH FROM GAS =====
+    async function loadCards() {
+      // キャッシュがあれば即座に表示
+      const cached = getCache();
+      if (cached) {
+        hideLoading();
+        renderCards(cached.slice().sort((a, b) => b.year - a.year));
+        return;
+      }
+      // なければGASから取得
+      showLoading();
+      try {
+        const res = await fetch(GAS_API_URL);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        const sorted = data.cards.slice().sort((a, b) => b.year - a.year);
+        setCache(sorted);
+        hideLoading();
+        renderCards(sorted);
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    loadCards();
+
+    // ===== KEYWORD SEARCH + SUGGEST =====
+    const searchInput = document.getElementById('search-input');
+    const suggestBox  = document.getElementById('suggest-box');
+
+    searchInput.addEventListener('input', () => {
+      applyFilters();
+      showSuggestions(searchInput.value.trim().toLowerCase());
+    });
+    searchInput.addEventListener('focus', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (q.length >= 1) showSuggestions(q);
+    });
+    // 外側クリックで閉じる
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.search-bar')) suggestBox.classList.remove('open');
+    });
+    // イベント委譲でサジェスト選択
+    suggestBox.addEventListener('click', e => {
+      const item = e.target.closest('.suggest-item');
+      if (!item) return;
+      if (item.dataset.action === 'go')     window.location = item.dataset.value;
+      if (item.dataset.action === 'search') { searchInput.value = item.dataset.value; suggestBox.classList.remove('open'); applyFilters(); }
+    });
+
+    function showSuggestions(q) {
+      if (!q || q.length < 1 || allCards.length === 0) {
+        suggestBox.classList.remove('open'); return;
+      }
+
+      const titleHits   = [];
+      const companyMap  = new Map(); // name → badge
+      const peopleMap   = new Map();
+
+      allCards.forEach((c, i) => {
+        // 作品名
+        if (c.title && c.title.toLowerCase().includes(q)) {
+          titleHits.push({ title: c.title, sub: c.advertiser || '', id: i });
+        }
+        // 会社名
+        [[c.advertiser, '広告主'], [c.agency, '広告会社'], [c.productionCompany, '制作会社']].forEach(([name, badge]) => {
+          if (name && name.toLowerCase().includes(q) && !companyMap.has(name)) companyMap.set(name, badge);
+        });
+        // スタッフ名
+        if (c.creativeDirector && c.creativeDirector.toLowerCase().includes(q) && !peopleMap.has(c.creativeDirector)) {
+          peopleMap.set(c.creativeDirector, 'CD');
+        }
+        if (c.staff) {
+          c.staff.split(',').forEach(pair => {
+            const ci = pair.indexOf(':');
+            if (ci === -1) return;
+            const name = pair.slice(ci + 1).trim();
+            if (name && name.toLowerCase().includes(q) && !peopleMap.has(name)) peopleMap.set(name, 'スタッフ');
+          });
+        }
+      });
+
+      let html = '';
+
+      if (titleHits.length > 0) {
+        html += `<div class="suggest-section"><span class="suggest-label">作品</span>`;
+        titleHits.slice(0, 5).forEach(m => {
+          html += `<div class="suggest-item" data-action="go" data-value="detail.html?id=${m.id}">
+            <span class="suggest-item-title">${escHtml(m.title)}</span>
+            <span class="suggest-item-sub">${escHtml(m.sub)}</span>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      if (companyMap.size > 0 || peopleMap.size > 0) {
+        html += `<div class="suggest-section"><span class="suggest-label">会社・人物</span>`;
+        [...companyMap.entries()].slice(0, 5).forEach(([name, badge]) => {
+          html += `<div class="suggest-item" data-action="search" data-value="${escHtml(name)}">
+            <span class="suggest-item-title">${escHtml(name)}</span>
+            <span class="suggest-badge">${badge}</span>
+          </div>`;
+        });
+        [...peopleMap.entries()].slice(0, 3).forEach(([name, badge]) => {
+          html += `<div class="suggest-item" data-action="search" data-value="${escHtml(name)}">
+            <span class="suggest-item-title">${escHtml(name)}</span>
+            <span class="suggest-badge">${badge}</span>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      if (!html) { suggestBox.classList.remove('open'); return; }
+      suggestBox.innerHTML = html;
+      suggestBox.classList.add('open');
+    }
+  </script>
+</body>
+</html>

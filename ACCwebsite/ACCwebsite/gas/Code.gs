@@ -15,75 +15,71 @@
 const SHEET_NAME = 'data';
 
 // ============================================================
-// 2018年: review ページに掲載されている作品番号セット
-// ============================================================
-const REVIEW_2018 = {
-  'BA182444': 1, 'BA181474': 1, 'BA181543': 1, 'BB182919': 1, 'BB180265': 1,
-  'BA182742': 1, 'BA181532': 1, 'BB181931': 1, 'BB181824': 1, 'BD182922': 1,
-  'BC181158': 1, 'BC181605': 1, 'BC180973': 1, 'BB180846': 1, 'BD180604': 1,
-  'BC180442': 1, 'BD180834': 1,
-};
-
-// ============================================================
-// 2019年: review ページのファイル名に連番プレフィックスがあるため辞書で管理
-// ============================================================
-const REVIEW_2019 = {
-  'BA192504': '01_BA192504', 'BA190761': '02_BA190761', 'BA191438': '03_BA191438',
-  'BA191472': '04_BA191472', 'BA191364': '05_BA191364', 'BA192712': '06_BA192712',
-  'BA192240': '07_BA192240', 'BA192234': '08_BA192234', 'BA192473': '09_BA192473',
-  'BA192615': '10_BA192615',
-  'BB191563': '01_BB191563', 'BB192642': '02_BB192642', 'BB190209': '03_BB190209',
-  'BB192355': '04_BB192355', 'BB192687': '05_BB192687', 'BB190619': '06_BB190619',
-  'BB192704': '07_BB192704', 'BB192648': '08_BB192648', 'BB192118': '09_BB192118',
-  'BB190320': '10_BB190320', 'BB190749': '11_BB190749', 'BB192527': '12_BB192527',
-  'BD192537': '13_BD192537', 'BB192400': '14_BB192400',
-  'BC191381': '01_BC191381', 'BC191526': '02_BC191526', 'BC192271': '03_BC192271',
-  'BC192104': '04_BC192104', 'BB190124': '05_BB190124', 'BC191817': '06_BC191817',
-  'BC190641': '07_BC190641', 'BC190658': '08_BC190658', 'BC192483': '09_BC192483_',
-  'BC192040': '10_BC192040', 'BC192401': '11_BC192401',
-  'BD192594': '01_BD192594', 'BD192061': '02_BD192061', 'BD191430': '04_BD191430',
-  'BD191469': '05_BD191469', 'BD192420': '06_BD192420', 'BD191423': '07_BD191423',
-  'BD191868': '08_BD191868', 'BD190889': '09_BD190889', 'BD190053': '10_BD190053',
-  'BD192705': '11_BD192705', 'BD191302': '12_BD191302',
-};
-
-// ============================================================
-// 2020年: review ページに掲載されている作品番号セット
-// ============================================================
-const REVIEW_2020 = {
-  'BA202441': 1, 'BA202138': 1, 'BA202636': 1, 'BA201245': 1, 'BA201361': 1,
-  'BA202637': 1, 'BA201130': 1, 'BA201976': 1, 'BA201189': 1, 'BA201299': 1,
-  'BA201731': 1, 'BA201915': 1, 'BA202407': 1, 'BA202517': 1, 'BB202676': 1,
-  'BB201317': 1, 'BB202149': 1, 'BB201303': 1, 'BB202110': 1, 'BB202444': 1,
-  'BB202453': 1, 'BB202089': 1, 'BB202501': 1, 'BB202635': 1, 'BB202663': 1,
-  'BB200500': 1, 'BB201627': 1, 'BB201721': 1, 'BB201750': 1, 'BB201861': 1,
-  'BB201970': 1, 'BB201977': 1, 'BB202177': 1, 'BB202526': 1, 'BB202658': 1,
-  'BC201892': 1, 'BC202320': 1, 'BC201497': 1, 'BC202659': 1, 'BC200456': 1,
-  'BC201523': 1, 'BC201874': 1, 'BC201965': 1, 'BC202265': 1, 'BC200481': 1,
-  'BC200630': 1, 'BC201995': 1, 'BC201295': 1, 'BC202339': 1, 'BC202518': 1,
-  'BC202552': 1, 'BC202587': 1, 'BC202665': 1, 'BC202666': 1, 'BC202268': 1,
-};
-
-// ============================================================
-// 2021年: review ページに掲載されている作品番号セット
-// ============================================================
-const REVIEW_2021 = {
-  'BA211679': 1, 'BA211086': 1, 'BA212368': 1, 'BA210928': 1, 'BA211598': 1,
-  'BA212116': 1, 'BA211582': 1, 'BD210490': 1, 'BB212098': 1, 'BB210517': 1,
-  'BB212163': 1, 'BB212597': 1, 'BB212598': 1, 'BB211052': 1, 'BB211082': 1,
-  'BB212297': 1, 'BB211982': 1, 'BB211893': 1, 'BB211736': 1, 'BB212504': 1,
-  'BB212568': 1, 'BB212290': 1, 'BB210241': 1, 'BC212522': 1, 'BC210035': 1,
-  'BC210230': 1, 'BC212205': 1, 'BC210318': 1, 'BC212418': 1, 'BC210629': 1,
-  'BC210368': 1, 'BC212255': 1, 'BC211096': 1, 'BC211894': 1, 'BC211740': 1,
-  'BC211421': 1, 'BC212515': 1, 'BC212525': 1, 'BC212607': 1, 'BD212357': 1,
-  'BD212566': 1, 'BD211332': 1, 'BD210924': 1, 'BD212122': 1, 'BD212403': 1,
-  'BD212531': 1, 'BD212414': 1,
-};
-
-// ============================================================
-// 2022・2023年サムネイルのS3直リンク辞書
+// 2021・2022年サムネイルのS3直リンク辞書
+// （acc-awards.com の festival URL がリンク切れのため）
+// thumbnailUrl が空 or acc-awards.com ドメインの場合に使用
 // ============================================================
 const S3_THUMB = {
+  // ===== 2021 BCA =====
+  'BA211082': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA211082/Thumbnail/BA211082_accawards_pola.jpg',
+  'BA210485': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA210485/Thumbnail/BA210485_THE_FIRST_TAKE_S1.jpg',
+  'BA211582': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA211582/Thumbnail/BA211582_PBL_award_thumbnail.jpg',
+  'BA210928': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA210928/Thumbnail/BA210928_pc_kibo_sunrise_key_visual_1920_1080.jpg',
+  'BA211086': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA211086/Thumbnail/BA211086_n10-thumnail-001.jpg',
+  'BA211679': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA211679/Thumbnail/BA211679_BA211679_YAKUSHIMA.jpeg',
+  'BA211598': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA211598/Thumbnail/BA211598_az_utkk_award_Thumbnail.jpg',
+  'BA212116': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA212116/Thumbnail/BA212116_STOP%E6%B5%B7%E8%B3%8A%E7%89%88ACC%E3%82%B5%E3%83%A0%E3%83%8D_%E3%82%AD%E3%83%B3%E3%82%B0%E3%83%80%E3%83%A0%E4%BF%AE%E6%AD%A3.jpg',
+  'BA212368': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA212368/Thumbnail/BA212368_sotetsu_samune.jpg',
+  // ===== 2021 BCB =====
+  'BB212074': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212074/Thumbnail/BB212074_BB212074_%E3%82%A2%E3%83%86%E3%83%B3%E3%83%88.jpg',
+  'BB211736': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB211736/Thumbnail/BB211736_%E7%B5%B6%E3%83%A1%E3%82%B7.jpg',
+  'BB211893': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB211893/Thumbnail/BB211893_%E3%82%B5%E3%83%A0%E3%83%8D%E3%82%A4%E3%83%AB%E7%94%BB%E5%83%8F.jpg',
+  'BB211982': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB211982/Thumbnail/BB211982_%E5%A4%A7%E5%A5%BD%E7%89%A9%E9%86%A4%E6%B2%B9.jpg',
+  'BB212290': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212290/Thumbnail/BB212290_BB212290_s_%E3%83%A1%E3%82%A4%E3%83%B3.jpg',
+  'BB212598': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212598/Thumbnail/BB212598_%E3%82%B5%E3%83%B3%E3%83%88%E3%83%AA%E3%83%BC%E3%82%B7%E3%82%99%E3%83%A3%E3%83%8F%E3%82%9A%E3%83%8B%E3%83%BC%E3%82%B9%E3%82%99%E3%82%B7%E3%82%99%E3%83%B3%E7%BF%A0_%E3%82%B5%E3%83%A0%E3%83%8D.jpeg',
+  'BB212098': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212098/Thumbnail/BB212098_BB212098.jpg',
+  'BB212163': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212163/Thumbnail/BB212163_ACC_R1.jpg',
+  'BB212394': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212394/Thumbnail/BB212394_BB212394_%20craftboss.jpeg',
+  'BB212504': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212504/Thumbnail/BB212504_BB212504_211022_pino_almond_ACC03.jpg',
+  'BB212568': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212568/Thumbnail/BB212568_%E5%B2%A9%E6%89%8B%E6%97%A5%E5%A0%B1BC%E9%83%A8%E9%96%80.jpeg',
+  'BB210241': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB210241/Thumbnail/BB210241_BB210241_211021%20%E6%B5%81%E3%82%8C%E6%98%9F%E6%96%B0%E5%B9%B9%E7%B7%9A%20%E3%82%B5%E3%83%A0%E3%83%8D%E3%82%A4%E3%83%AB.jpg',
+  'BB210517': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB210517/Thumbnail/BB210517_%E3%82%AB%E3%83%AB%E3%83%94%E3%82%B9ACC%E3%82%B5%E3%83%A0%E3%83%8D%E3%82%A4%E3%83%AB.jpg',
+  'BB211052': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB211052/Thumbnail/BB211052_%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202021-07-16%208.53.14.jpg',
+  'BB211583': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB211583/Thumbnail/BB211583_PBL_award_thumbnail.jpg',
+  'BB211763': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB211763/Thumbnail/BB211763_BK%20TOWN%20ROOM.jpg',
+  'BB212119': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212119/Thumbnail/BB212119_BB212119_%20lotte_web_%E9%9B%AA%E8%A6%8B%E3%83%88%E3%83%BC%E3%82%B9%E3%83%88KV.jpg',
+  'BB212297': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212297/Thumbnail/BB212297_HND(%E5%85%AC%E9%96%8B%E7%94%A8).jpg',
+  'BB212597': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BB212597/Thumbnail/BB212597_BB212597.jpg',
+  // ===== 2021 BCC =====
+  'BC212117': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC212117/Thumbnail/BC212117_BC212117_%E3%82%A2%E3%83%86%E3%83%B3%E3%83%88.jpg',
+  'BC212525': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC212525/Thumbnail/BC212525_%E5%B2%A9%E6%89%8B%E6%97%A5%E5%A0%B1BC%E9%83%A8%E9%96%80.jpeg',
+  'BC212607': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC212607/Thumbnail/BC212607_BC212607(%E9%AB%98%E7%94%BB%E8%B3%AA).jpg',
+  'BC210035': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC210035/Thumbnail/BC210035_ACC_thumbnail_Yakult.jpeg',
+  'BC210230': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC210230/Thumbnail/BC210230_kyoto_logo.jpg',
+  'BC210318': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC210318/Thumbnail/BC210318_ACC_seibusogo_%E3%82%B5%E3%83%A0%E3%83%8D.jpg',
+  'BC211096': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC211096/Thumbnail/BC211096_BC211096_%20SPOTOMEHANDSUP.jpg',
+  'BC211894': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC211894/Thumbnail/BC211894_%E3%82%B5%E3%83%A0%E3%83%8D%E3%82%A4%E3%83%AB%E7%94%BB%E5%83%8F.jpg',
+  'BC212272': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC212272/Thumbnail/BC212272_BC212272_%E3%81%BE%E3%82%82%E3%81%A3%E3%81%A6%E3%83%88%E3%83%BC%E3%83%88(%E5%85%AC%E9%96%8B%E7%94%A8).jpg',
+  'BC210368': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC210368/Thumbnail/BC210368_ACC_thumbnail_POCKET%20SOAP.jpg',
+  'BC210629': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC210629/Thumbnail/BC210629_BC210629_Beppu_3mitsudango.jpeg',
+  'BC211421': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC211421/Thumbnail/BC211421_ACC_VIBTEX_CREATIVEINNOVATION_thumbnail%20(1).jpg',
+  'BC211740': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC211740/Thumbnail/BC211740_%E7%B5%B6%E3%83%A1%E3%82%B7.jpg',
+  'BC212205': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC212205/Thumbnail/BC212205_BC212205_kuletegommen_logo.jpg',
+  'BC212255': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC212255/Thumbnail/BC212255_d69004-1-285401-0.jpg',
+  'BC212418': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC212418/Thumbnail/BC212418_BC212418_%E7%94%9F%E7%90%86%E7%94%A8%E5%93%81%E3%82%B5%E3%83%A0%E3%83%8D.jpg',
+  'BC212515': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC212515/Thumbnail/BC212515_PrideHair_tittle.jpg',
+  'BC212522': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BC212522/Thumbnail/BC212522_BC212522_%20ACC_toroneko.jpg',
+  // ===== 2021 BCD =====
+  'BD210490': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BD210490/Thumbnail/BD210490_THE_FIRST_TAKE_S1.jpg',
+  'BD210924': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BD210924/Thumbnail/BD210924_BD210924.jpg',
+  'BD212357': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BD212357/Thumbnail/BD212357_image_1920.jpg',
+  'BD212403': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BD212403/Thumbnail/BD212403_BD212403_%20craftboss.jpeg',
+  'BD212531': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BD212531/Thumbnail/BD212531_BD212531_%20saga_KV_1025.jpg',
+  'BD211332': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BD211332/Thumbnail/BD211332_BD211332_TwitterCP%EF%BC%884%E6%9C%88%EF%BC%89%E3%81%AE%E3%82%B3%E3%83%92%E3%82%9A%E3%83%BC.jpeg',
+  'BD211584': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BD211584/Thumbnail/BD211584_PBL_award_thumbnail.jpg',
+  'BD212122': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BD212122/Thumbnail/BD212122_BD212122_%20lotte_web_%E9%9B%AA%E8%A6%8B%E3%83%88%E3%83%BC%E3%82%B9%E3%83%88KV.jpg',
+  'BD212414': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BD212414/Thumbnail/BD212414_NIKE-The-Future-Isnt-Waiting-Keyframe-03.jpg',
+  'BD212566': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BD212566/Thumbnail/BD212566_BD212566_%20ACC_toroneko.jpg',
   // ===== 2022 BCA =====
   'BA221706': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA221706/Thumbnail/BA221706_giant3dcat.jpg',
   'BA221821': 'https://s3-ap-northeast-1.amazonaws.com/acc-s3/UploadFiles/PROD/BA221821/Thumbnail/BA221821_BA221821_TOKYO2020%E3%82%B5%E3%83%A0%E3%83%8D%E3%82%A4%E3%83%AB.jpg',
@@ -272,41 +268,14 @@ function doGet(e) {
           if (m) wn = m[1];
         }
 
-        if (wn) {
-          if (card.year === 2018) {
-            // 2018年: review ページに掲載されている作品のみURL設定、それ以外は空
-            if (REVIEW_2018[wn]) {
-              card.thumbnailUrl = 'https://www.acc-awards.com/festival/2018fes_result/review/img/' + wn + '.jpg';
-            } else {
-              card.thumbnailUrl = '';
-            }
-          } else if (card.year === 2019) {
-            // 2019年: 連番プレフィックスが必要なため辞書から取得、それ以外は空
-            if (REVIEW_2019[wn]) {
-              card.thumbnailUrl = 'https://www.acc-awards.com/festival/2019fes_result/review/img/' + REVIEW_2019[wn] + '.jpg';
-            } else {
-              card.thumbnailUrl = '';
-            }
-          } else if (card.year === 2020) {
-            // 2020年: review ページに掲載されている作品のみURL設定、それ以外は空
-            if (REVIEW_2020[wn]) {
-              card.thumbnailUrl = 'https://www.acc-awards.com/festival/2020fes_result/review/img/' + wn + '.jpg';
-            } else {
-              card.thumbnailUrl = '';
-            }
-          } else if (card.year === 2021) {
-            // 2021年: review ページ優先、なければ空（S3はCORSエラーのため使用不可）
-            if (REVIEW_2021[wn]) {
-              card.thumbnailUrl = 'https://www.acc-awards.com/festival/2021fes_result/review/img/' + wn + '.jpg';
-            } else {
-              card.thumbnailUrl = '';
-            }
-          } else {
-            // 2022年以降: S3辞書でURLを上書き（なければH列のURLをそのまま使う）
-            const s3url = S3_THUMB[wn];
-            if (s3url) {
-              card.thumbnailUrl = s3url;
-            }
+        if (card.year === 2021 && wn) {
+          // 2021年: S3は破損のため review ページのURLを直接構築
+          card.thumbnailUrl = 'https://www.acc-awards.com/festival/2021fes_result/review/img/' + wn + '.jpg';
+        } else {
+          // 2022年以降: S3辞書でURLを上書き
+          const s3url = wn ? S3_THUMB[wn] : null;
+          if (s3url) {
+            card.thumbnailUrl = s3url;
           }
         }
 

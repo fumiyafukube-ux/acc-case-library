@@ -740,7 +740,7 @@
       // キャッシュがあれば即座に表示
       const cached = getCache();
       if (cached) {
-        await initPage(cached.slice().sort((a, b) => b.year - a.year));
+        await initPage(cached);
         document.getElementById('loading-state').style.display = 'none';
         document.getElementById('page-content').style.display  = '';
         return;
